@@ -1,0 +1,39 @@
+[
+  {
+    "id": "med-001",
+    "name": "Lisinopril",
+    "dosage": "10mg",
+    "condition": "HTN",
+    "conditionName": "Hypertension",
+    "frequency": "once daily",
+    "instructions": "Take in the morning with or without food",
+    "purpose": "Relaxes blood vessels to lower blood pressure",
+    "sideEffects": ["Dry cough", "Dizziness", "Headache"],
+    "verified": false
+  },
+  {
+    "id": "med-002",
+    "name": "Metformin",
+    "dosage": "500mg",
+    "condition": "DM",
+    "conditionName": "Diabetes",
+    "frequency": "twice daily",
+    "instructions": "Take with breakfast and dinner",
+    "purpose": "Helps your body use sugar better and protects kidneys and heart",
+    "sideEffects": ["Stomach upset", "Nausea", "Diarrhea"],
+    "verified": false
+  },
+  {
+    "id": "med-003",
+    "name": "Atorvastatin",
+    "dosage": "20mg",
+    "condition": "CHOL",
+    "conditionName": "Cholesterol",
+    "frequency": "once daily at bedtime",
+    "instructions": "Take at night before bed",
+    "purpose": "Lowers bad cholesterol and protects heart from future problems",
+    "sideEffects": ["Muscle pain", "Headache", "Digestive issues"],
+    "verified": false
+  }
+]
+

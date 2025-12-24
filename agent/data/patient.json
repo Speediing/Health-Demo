@@ -1,0 +1,9 @@
+{
+  "id": "patient-001",
+  "name": "Sarah Johnson",
+  "email": "sarah.j@email.com",
+  "phone": "+1 (555) 123-4567",
+  "dateOfBirth": "1975-03-15",
+  "conditions": ["HTN", "DM", "CHOL"]
+}
+

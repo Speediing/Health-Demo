@@ -1,0 +1,42 @@
+{
+  "HTN": {
+    "condition": "Hypertension",
+    "summary": "High blood pressure makes your heart work harder than it should. Over time, this can damage your heart, blood vessels, kidneys, and other organs.",
+    "medicationInfo": "This medicine relaxes your blood vessels so your heart doesn't work as hard. Keep taking it even if your blood pressure feels normal.",
+    "lifestyleTips": [
+      "Reduce sodium intake to less than 2,300mg per day",
+      "Exercise regularly - aim for 30 minutes most days",
+      "Maintain a healthy weight",
+      "Limit alcohol consumption",
+      "Manage stress through relaxation techniques"
+    ],
+    "warningSign": "Contact your doctor if you experience severe headache, chest pain, or vision problems."
+  },
+  "DM": {
+    "condition": "Diabetes",
+    "summary": "Diabetes affects how your body processes blood sugar. Managing it well protects your heart, kidneys, eyes, and nerves.",
+    "medicationInfo": "Metformin helps your body use sugar better and protects your kidneys and heart. Take with food to reduce stomach upset.",
+    "lifestyleTips": [
+      "Monitor your blood sugar as directed",
+      "Eat regular, balanced meals",
+      "Choose complex carbohydrates over simple sugars",
+      "Stay physically active",
+      "Check your feet daily for any cuts or sores"
+    ],
+    "warningSign": "Watch for signs of low blood sugar: shakiness, sweating, confusion. Keep glucose tablets handy."
+  },
+  "CHOL": {
+    "condition": "High Cholesterol",
+    "summary": "High cholesterol can build up in your arteries and increase your risk of heart attack and stroke. You won't feel it, but treatment prevents future problems.",
+    "medicationInfo": "Statins protect your heart by lowering 'bad' cholesterol. You won't feel different day-to-day, but they prevent future heart problems.",
+    "lifestyleTips": [
+      "Eat heart-healthy foods - more fish, nuts, and vegetables",
+      "Limit saturated fats and avoid trans fats",
+      "Exercise regularly",
+      "Quit smoking if you smoke",
+      "Maintain a healthy weight"
+    ],
+    "warningSign": "Report unexplained muscle pain or weakness to your doctor."
+  }
+}
+

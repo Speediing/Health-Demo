@@ -1,0 +1,89 @@
+{
+  "pharmacistSlots": [
+    {
+      "id": "slot-001",
+      "date": "2024-12-18",
+      "time": "09:00 AM",
+      "duration": 30,
+      "available": true,
+      "pharmacist": "Dr. Michael Chen"
+    },
+    {
+      "id": "slot-002",
+      "date": "2024-12-18",
+      "time": "10:30 AM",
+      "duration": 30,
+      "available": true,
+      "pharmacist": "Dr. Michael Chen"
+    },
+    {
+      "id": "slot-003",
+      "date": "2024-12-18",
+      "time": "02:00 PM",
+      "duration": 30,
+      "available": true,
+      "pharmacist": "Dr. Lisa Park"
+    },
+    {
+      "id": "slot-004",
+      "date": "2024-12-19",
+      "time": "09:00 AM",
+      "duration": 30,
+      "available": true,
+      "pharmacist": "Dr. Michael Chen"
+    },
+    {
+      "id": "slot-005",
+      "date": "2024-12-19",
+      "time": "11:00 AM",
+      "duration": 30,
+      "available": true,
+      "pharmacist": "Dr. Lisa Park"
+    },
+    {
+      "id": "slot-006",
+      "date": "2024-12-19",
+      "time": "03:30 PM",
+      "duration": 30,
+      "available": true,
+      "pharmacist": "Dr. Lisa Park"
+    },
+    {
+      "id": "slot-007",
+      "date": "2024-12-20",
+      "time": "10:00 AM",
+      "duration": 30,
+      "available": true,
+      "pharmacist": "Dr. Michael Chen"
+    },
+    {
+      "id": "slot-008",
+      "date": "2024-12-20",
+      "time": "01:00 PM",
+      "duration": 30,
+      "available": true,
+      "pharmacist": "Dr. Lisa Park"
+    }
+  ],
+  "followUpSlots": [
+    {
+      "id": "followup-001",
+      "date": "2024-12-24",
+      "time": "10:00 AM",
+      "type": "7-day check-in"
+    },
+    {
+      "id": "followup-002",
+      "date": "2024-12-25",
+      "time": "02:00 PM",
+      "type": "7-day check-in"
+    },
+    {
+      "id": "followup-003",
+      "date": "2025-01-17",
+      "time": "10:00 AM",
+      "type": "30-day check-in"
+    }
+  ]
+}
+
