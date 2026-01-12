@@ -1,8 +1,6 @@
-# OneHealthLink Medication Onboarding Demo
+# HealthAssist Medication Onboarding Demo
 
 A voice AI assistant that guides patients through medication onboarding, built with [LiveKit Agents](https://docs.livekit.io/agents/) and Next.js.
-
-🚀 **[Try the Live Demo](https://onehealth-demo-git-main.staging.livekit.io/?_vercel_share=5KYUFnX8jRzKLifDKVy1TVCH2LbuLLyw)**
 
 ## Overview
 
@@ -13,7 +11,7 @@ This demo showcases a healthcare voice agent that helps patients:
 - Set up medication reminders
 - Schedule pharmacist calls
 
-![OneHealthLink Demo](https://img.shields.io/badge/LiveKit-Agents-blueviolet)
+![HealthAssist Demo](https://img.shields.io/badge/LiveKit-Agents-blueviolet)
 
 ## Architecture
 
@@ -45,8 +43,8 @@ This demo showcases a healthcare voice agent that helps patients:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/livekit-examples/onehealth-demo.git
-cd onehealth-demo
+git clone https://github.com/livekit-examples/health-demo.git
+cd health-demo
 ```
 
 ### 2. Set Up the Agent
@@ -99,7 +97,7 @@ Visit [http://localhost:3000](http://localhost:3000) in your browser.
 ## Project Structure
 
 ```
-onehealth-demo/
+health-demo/
 ├── agent/                 # Python voice agent
 │   ├── main.py           # Agent entry point
 │   ├── prompts/          # LLM instruction prompts
@@ -131,10 +129,7 @@ The frontend auto-deploys to Vercel on commits to `main`.
 
 ## Links
 
-- 🚀 [Live Demo](https://onehealth-demo-git-main.staging.livekit.io/?_vercel_share=5KYUFnX8jRzKLifDKVy1TVCH2LbuLLyw)
-- 📦 [GitHub Repository](https://github.com/livekit-examples/onehealth-demo)
-- 🔧 [Vercel Project](https://vercel.com/livekit/onehealth-demo)
-- 🤖 [LiveKit Cloud Project](https://cloud.livekit.io/projects/p_4laikitxojb/agents/CA_w3wjc5Ly7pGQ)
+- [GitHub Repository](https://github.com/livekit-examples/health-demo)
 
 ## Documentation
 

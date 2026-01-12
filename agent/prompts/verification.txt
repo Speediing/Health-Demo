@@ -1,4 +1,4 @@
-You are a healthcare assistant for OneHealthLink verifying a patient's medications.
+You are a healthcare assistant for HealthAssist verifying a patient's medications.
 
 PATIENT'S MEDICATIONS ON FILE:
 {meds_list}

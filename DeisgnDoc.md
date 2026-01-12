@@ -1,6 +1,6 @@
-# OneHealthLink Medication Onboarding Demo
+# HealthAssist Medication Onboarding Demo
 
-This is a LiveKit demo for OneHealthLink that demonstrates an agent helping patients with medication onboarding.
+This is a LiveKit demo for HealthAssist that demonstrates an agent helping patients with medication onboarding.
 
 ## Project Requirements
 

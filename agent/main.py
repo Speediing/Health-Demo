@@ -504,7 +504,7 @@ async def entrypoint(ctx: JobContext):
     )
 
     await session.say(
-        f"Hi {state.patient.get('name', '').split()[0]}, this is your OneHealthLink medication assistant. "
+        f"Hi {state.patient.get('name', '').split()[0]}, this is your HealthAssist medication assistant. "
         "I'm here to help you understand your new medications and answer any questions. "
         "Is now a good time to chat for a few minutes?",
         allow_interruptions=True,
