@@ -14,7 +14,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OneHealthLink - Medication Onboarding",
+  title: "HealthAssist - Medication Onboarding",
   description: "Your personal medication onboarding assistant",
 };
 

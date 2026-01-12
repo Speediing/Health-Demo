@@ -75,7 +75,7 @@ export function RoomConnection() {
     setError(null);
 
     try {
-      const roomName = `onehealth-${Date.now()}`;
+      const roomName = `health-${Date.now()}`;
       const res = await fetch(
         `/api/token?room=${roomName}&username=Patient`
       );
@@ -106,7 +106,7 @@ export function RoomConnection() {
           <div className="connection-header">
             <div className="logo">
               <span className="logo-icon">+</span>
-              <span className="logo-text">OneHealthLink</span>
+              <span className="logo-text">HealthAssist</span>
             </div>
             <h1>Medication Onboarding</h1>
             <p>

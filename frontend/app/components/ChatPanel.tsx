@@ -142,7 +142,7 @@ export function ChatPanel() {
             size={18}
             className={isAgentSpeaking ? "speaking" : ""}
           />
-          <span>OneHealthLink Assistant</span>
+          <span>HealthAssist</span>
         </div>
         <div className="mode-toggle">
           <button

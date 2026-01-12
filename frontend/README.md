@@ -1,4 +1,4 @@
-# OneHealthLink Frontend
+# HealthAssist Frontend
 
 A Next.js frontend for the medication onboarding voice agent demo.
 

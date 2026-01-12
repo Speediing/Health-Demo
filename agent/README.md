@@ -1,4 +1,4 @@
-# OneHealthLink Medication Onboarding Agent
+# HealthAssist Medication Onboarding Agent
 
 A multi-agent voice assistant that guides patients through medication onboarding.
 
@@ -48,8 +48,8 @@ uv run python main.py dev
 Build from the **project root** (not from inside `agent/`):
 
 ```bash
-# From onehealth-demo/
-docker build -f agent/Dockerfile -t onehealth-agent .
+# From health-demo/
+docker build -f agent/Dockerfile -t health-agent .
 ```
 
 Run with environment variables:

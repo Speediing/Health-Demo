@@ -1,7 +1,7 @@
 [project]
-name = "onehealth-agent"
+name = "health-agent"
 version = "0.1.0"
-description = "OneHealthLink medication onboarding voice agent"
+description = "HealthAssist medication onboarding voice agent"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
