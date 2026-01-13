@@ -13,12 +13,20 @@ from livekit.agents import (
     WorkerOptions,
     cli,
     function_tool,
+    room_io,
 )
+from livekit.agents.beta.workflows import WarmTransferTask
+from livekit.agents.llm import ToolError
 from livekit.plugins import cartesia, deepgram, openai, silero
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 logger = logging.getLogger("medication-onboarding")
 logger.setLevel(logging.INFO)
+
+# SIP Configuration for warm transfer to supervisor
+SIP_TRUNK_ID = "ST_4Ct2FA2tqtEG"
+SUPERVISOR_PHONE_NUMBER = "+14039193117"
+SIP_NUMBER = "+18253054156"
 
 BASE_DIR = Path(__file__).parent
 PROMPTS_DIR = BASE_DIR / "prompts"
@@ -85,6 +93,17 @@ class SessionState:
 RunContext_T = RunContext[SessionState]
 
 
+SUPERVISOR_SUMMARY_INSTRUCTIONS = """
+Introduce the conversation from your perspective as the AI medication onboarding assistant:
+
+WHO you're talking to (patient name if mentioned)
+WHY they called (medication onboarding for new prescriptions)
+WHERE in the workflow you are (welcome, verification, education, etc.)
+WHY a human supervisor is being requested
+Brief summary of any concerns or issues raised by the patient
+"""
+
+
 class BaseAgent(Agent):
     workflow_name: str = "unknown"
 
@@ -117,6 +136,54 @@ class BaseAgent(Agent):
             await state.ctx.room.local_participant.set_attributes(
                 {"state": json.dumps(state.to_ui_state())}
             )
+
+    @function_tool
+    async def transfer_to_supervisor(self) -> None:
+        """Called when the patient asks to speak to a human supervisor or pharmacist directly.
+        This will put the patient on hold while the supervisor is connected.
+
+        Ensure that the patient has confirmed that they want to be transferred before calling this tool.
+        Examples on when this tool should be called:
+        ----
+        - Patient: Can I speak to a real person?
+        - Assistant: Of course, let me connect you.
+        ----
+        - Patient: I'd like to talk to a pharmacist directly.
+        - Assistant: Absolutely, I'll transfer you now.
+        ----
+        - Patient: I'm not comfortable discussing this with an AI.
+        - Assistant: I understand completely. Let me get a human on the line.
+        ----
+        """
+        logger.info("Initiating warm transfer to supervisor")
+        await self.session.say(
+            "Please hold while I connect you to a supervisor.",
+            allow_interruptions=False,
+        )
+        try:
+            result = await WarmTransferTask(
+                target_phone_number=SUPERVISOR_PHONE_NUMBER,
+                sip_trunk_id=SIP_TRUNK_ID,
+                sip_number=SIP_NUMBER,
+                chat_ctx=self.chat_ctx,
+                extra_instructions=SUPERVISOR_SUMMARY_INSTRUCTIONS,
+            )
+        except ToolError as e:
+            logger.error(f"Failed to transfer to supervisor with tool error: {e}")
+            raise e
+        except Exception as e:
+            logger.exception("Failed to transfer to supervisor")
+            raise ToolError(f"Failed to transfer to supervisor: {e}") from e
+
+        logger.info(
+            "Transfer to supervisor successful",
+            extra={"supervisor_identity": result.human_agent_identity},
+        )
+        await self.session.say(
+            "You are now connected with a supervisor. I'll be hanging up now. Take care!",
+            allow_interruptions=False,
+        )
+        self.session.shutdown()
 
 
 class WelcomeAgent(BaseAgent):
@@ -501,6 +568,9 @@ async def entrypoint(ctx: JobContext):
     await session.start(
         agent=state.agents["welcome"],
         room=ctx.room,
+        room_options=room_io.RoomOptions(
+            delete_room_on_close=False,  # Keep the room open for supervisor transfer
+        ),
     )
 
     await session.say(
