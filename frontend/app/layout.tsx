@@ -14,8 +14,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HealthAssist - Medication Onboarding",
-  description: "Your personal medication onboarding assistant",
+  title: "UnitedHealthcare - Medication Onboarding",
+  description: "Your personal medication onboarding assistant powered by UnitedHealthcare",
 };
 
 export default function RootLayout({

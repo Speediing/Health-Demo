@@ -105,13 +105,13 @@ export function RoomConnection() {
         <div className="connection-card">
           <div className="connection-header">
             <div className="logo">
-              <span className="logo-icon">+</span>
-              <span className="logo-text">HealthAssist</span>
+              <span className="logo-icon">U</span>
+              <span className="logo-text">UnitedHealthcare</span>
             </div>
             <h1>Medication Onboarding</h1>
             <p>
-              Connect to speak with your healthcare assistant about your new
-              medications.
+              Connect with your personal healthcare assistant to review your new
+              medications and get the support you need.
             </p>
           </div>
           {error && <div className="error-message">{error}</div>}
