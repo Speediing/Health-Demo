@@ -12,7 +12,7 @@ import { RoomEvent } from "livekit-client";
 import { SessionState } from "../types";
 import { ChatPanel } from "./ChatPanel";
 import { PatientDashboard } from "./PatientDashboard";
-import { Loader2, PhoneCall, PhoneOff, Mic, LayoutDashboard, ListChecks, Cpu, Bot, ArrowRightLeft } from "lucide-react";
+import { Loader2, PhoneCall, PhoneOff, Mic, LayoutDashboard, ListChecks, Cpu, Bot, ArrowRightLeft, Phone, UserCheck } from "lucide-react";
 
 interface ConnectionState {
   token: string;
@@ -233,6 +233,30 @@ export function RoomConnection() {
                 seamlessly transfers the call to Amazon Lex for appointment booking, then
                 returns control to the main agent.
               </p>
+            </div>
+
+            <div className="telephony-section">
+              <h3>Telephony & Escalation Support</h3>
+              <div className="telephony-features">
+                <div className="telephony-card">
+                  <div className="telephony-icon">
+                    <Phone size={18} />
+                  </div>
+                  <div className="telephony-content">
+                    <strong>PSTN Telephony Integration</strong>
+                    <p>Supports inbound and outbound calls over traditional phone lines, making the AI assistant accessible to patients without internet access.</p>
+                  </div>
+                </div>
+                <div className="telephony-card">
+                  <div className="telephony-icon supervisor">
+                    <UserCheck size={18} />
+                  </div>
+                  <div className="telephony-content">
+                    <strong>Warm Handoff to Supervisor</strong>
+                    <p>Say "I'd like to speak to a supervisor" at any time. The system performs a warm transfer, briefing the human agent on the conversation context before connecting.</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
