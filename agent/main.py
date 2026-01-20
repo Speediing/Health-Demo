@@ -27,7 +27,7 @@ logger.setLevel(logging.INFO)
 
 # SIP Configuration for warm transfer to supervisor
 SIP_TRUNK_ID = "ST_4Ct2FA2tqtEG"
-SUPERVISOR_PHONE_NUMBER = "+14039193117"
+DEFAULT_SUPERVISOR_PHONE = "+14039193117"  # Default fallback
 SIP_NUMBER = "+18253054156"
 
 # Amazon Lex Configuration for call center hours bot
@@ -80,6 +80,7 @@ class SessionState:
     lex_client: Any = None
     lex_bot_active: bool = False
     current_llm: str = "openai"
+    supervisor_phone: str = DEFAULT_SUPERVISOR_PHONE
 
     def load_data(self):
         self.patient = load_json("patient.json")
@@ -155,7 +156,7 @@ class BaseAgent(Agent):
             )
 
     @function_tool
-    async def transfer_to_supervisor(self) -> None:
+    async def transfer_to_supervisor(self, context: RunContext_T) -> None:
         """Called when the patient asks to speak to a human supervisor or pharmacist directly.
         This will put the patient on hold while the supervisor is connected.
 
@@ -172,14 +173,16 @@ class BaseAgent(Agent):
         - Assistant: I understand completely. Let me get a human on the line.
         ----
         """
-        logger.info("Initiating warm transfer to supervisor")
+        state = context.userdata
+        supervisor_phone = state.supervisor_phone
+        logger.info(f"Initiating warm transfer to supervisor at {supervisor_phone}")
         await self.session.say(
             "Please hold while I connect you to a supervisor.",
             allow_interruptions=False,
         )
         try:
             result = await WarmTransferTask(
-                target_phone_number=SUPERVISOR_PHONE_NUMBER,
+                target_phone_number=supervisor_phone,
                 sip_trunk_id=SIP_TRUNK_ID,
                 sip_number=SIP_NUMBER,
                 chat_ctx=self.chat_ctx,
@@ -600,13 +603,42 @@ class WrapUpAgent(BaseAgent):
         return "Call completed. Say a warm goodbye."
 
 
+def get_supervisor_phone_from_participants(room) -> str:
+    """Extract supervisor phone from participant metadata if available."""
+    for participant in room.remote_participants.values():
+        if participant.metadata:
+            try:
+                metadata = json.loads(participant.metadata)
+                if "supervisorPhone" in metadata and metadata["supervisorPhone"]:
+                    logger.info(f"Found supervisor phone in participant metadata: {metadata['supervisorPhone']}")
+                    return metadata["supervisorPhone"]
+            except (json.JSONDecodeError, TypeError):
+                pass
+    return DEFAULT_SUPERVISOR_PHONE
+
+
 async def entrypoint(ctx: JobContext):
     await ctx.connect()
 
     load_dotenv(dotenv_path=".env.local")
 
-    state = SessionState(ctx=ctx)
+    # Get supervisor phone from participant metadata (set by frontend)
+    supervisor_phone = get_supervisor_phone_from_participants(ctx.room)
+
+    state = SessionState(ctx=ctx, supervisor_phone=supervisor_phone)
     state.load_data()
+
+    # Listen for participant attribute changes to update supervisor phone
+    @ctx.room.on("participant_connected")
+    def on_participant_connected(participant):
+        if participant.metadata:
+            try:
+                metadata = json.loads(participant.metadata)
+                if "supervisorPhone" in metadata and metadata["supervisorPhone"]:
+                    state.supervisor_phone = metadata["supervisorPhone"]
+                    logger.info(f"Updated supervisor phone from new participant: {state.supervisor_phone}")
+            except (json.JSONDecodeError, TypeError):
+                pass
 
     # Initialize Amazon Lex client for call center hours queries
     state.lex_client = boto3.client(

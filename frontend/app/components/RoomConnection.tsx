@@ -12,7 +12,7 @@ import { RoomEvent } from "livekit-client";
 import { SessionState } from "../types";
 import { ChatPanel } from "./ChatPanel";
 import { PatientDashboard } from "./PatientDashboard";
-import { Loader2, PhoneCall, PhoneOff, Mic, LayoutDashboard, ListChecks, Cpu, Bot, ArrowRightLeft, Phone, UserCheck } from "lucide-react";
+import { Loader2, PhoneCall, PhoneOff, Mic, LayoutDashboard, ListChecks, Cpu, Bot, ArrowRightLeft, Phone, UserCheck, Settings, ChevronDown, ChevronUp } from "lucide-react";
 
 interface ConnectionState {
   token: string;
@@ -69,6 +69,8 @@ export function RoomConnection() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [supervisorPhone, setSupervisorPhone] = useState("+14039193117");
+  const [showSettings, setShowSettings] = useState(false);
 
   const connect = async () => {
     setIsConnecting(true);
@@ -76,9 +78,12 @@ export function RoomConnection() {
 
     try {
       const roomName = `health-${Date.now()}`;
-      const res = await fetch(
-        `/api/token?room=${roomName}&username=Patient`
-      );
+      const params = new URLSearchParams({
+        room: roomName,
+        username: "Patient",
+        supervisorPhone: supervisorPhone,
+      });
+      const res = await fetch(`/api/token?${params}`);
       if (!res.ok) throw new Error("Failed to get token");
 
       const data = await res.json();
@@ -259,6 +264,37 @@ export function RoomConnection() {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="settings-panel">
+          <button
+            className="settings-toggle"
+            onClick={() => setShowSettings(!showSettings)}
+          >
+            <Settings size={16} />
+            <span>Demo Settings</span>
+            {showSettings ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+          {showSettings && (
+            <div className="settings-content">
+              <div className="setting-item">
+                <label htmlFor="supervisor-phone">
+                  <UserCheck size={14} />
+                  Supervisor Phone Number
+                </label>
+                <input
+                  id="supervisor-phone"
+                  type="tel"
+                  value={supervisorPhone}
+                  onChange={(e) => setSupervisorPhone(e.target.value)}
+                  placeholder="+1234567890"
+                />
+                <span className="setting-hint">
+                  Phone number for warm transfer escalations
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="landing-cta">

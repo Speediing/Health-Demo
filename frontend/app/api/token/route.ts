@@ -5,6 +5,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const room = searchParams.get("room") || "onehealth-demo";
   const username = searchParams.get("username") || "Patient";
+  const supervisorPhone = searchParams.get("supervisorPhone") || "";
 
   const apiKey = process.env.LIVEKIT_API_KEY;
   const apiSecret = process.env.LIVEKIT_API_SECRET;
@@ -15,6 +16,11 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
+
+  // Build room metadata with configurable settings
+  const roomMetadata = JSON.stringify({
+    supervisorPhone: supervisorPhone,
+  });
 
   const at = new AccessToken(apiKey, apiSecret, {
     identity: username,
@@ -27,7 +33,11 @@ export async function GET(request: Request) {
     canPublish: true,
     canSubscribe: true,
     canPublishData: true,
+    roomCreate: true,
   });
+
+  // Set room metadata in the token
+  at.metadata = roomMetadata;
 
   const token = await at.toJwt();
 
