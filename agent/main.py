@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
@@ -127,6 +128,8 @@ class BaseAgent(Agent):
         state: SessionState = self.session.userdata
         state.current_workflow = self.workflow_name
         state.current_llm = self.llm_provider
+        # Clear Lex bot indicator when entering a new agent
+        state.lex_bot_active = False
 
         if state.ctx and state.ctx.room:
             await state.ctx.room.local_participant.set_attributes(
@@ -229,10 +232,8 @@ class BaseAgent(Agent):
             messages = response.get("messages", [])
             result = " ".join(msg.get("content", "") for msg in messages) if messages else "I couldn't find specific information about call center hours."
 
-            # Clear Lex bot active state and update UI
-            state.lex_bot_active = False
-            await self._update_ui()
-
+            # Keep lex_bot_active = True while the response is spoken
+            # It will be cleared on next agent enter or next interaction
             return result
 
         except Exception as e:
@@ -608,7 +609,12 @@ async def entrypoint(ctx: JobContext):
     state.load_data()
 
     # Initialize Amazon Lex client for call center hours queries
-    state.lex_client = boto3.client("lexv2-runtime", region_name=LEX_REGION)
+    state.lex_client = boto3.client(
+        "lexv2-runtime",
+        region_name=LEX_REGION,
+        aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+    )
 
     agent_classes = [
         ("welcome", WelcomeAgent),
