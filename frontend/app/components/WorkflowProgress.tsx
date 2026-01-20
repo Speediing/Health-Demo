@@ -2,18 +2,21 @@
 
 import { WorkflowStep, WORKFLOW_STEPS } from "../types";
 import { Check, Clock, Circle } from "lucide-react";
+import { LlmIndicator } from "./LlmIndicator";
 
 interface WorkflowProgressProps {
   currentStep: WorkflowStep;
+  currentLlm?: "openai" | "gemini";
 }
 
-export function WorkflowProgress({ currentStep }: WorkflowProgressProps) {
+export function WorkflowProgress({ currentStep, currentLlm }: WorkflowProgressProps) {
   const currentIndex = WORKFLOW_STEPS.findIndex((s) => s.key === currentStep);
   const isScheduling = currentStep === "scheduling";
 
   return (
     <div className="workflow-progress">
       <h3 className="workflow-title">Session Progress</h3>
+      <LlmIndicator provider={currentLlm} />
       {isScheduling && (
         <div className="scheduling-badge">
           <Clock size={14} />

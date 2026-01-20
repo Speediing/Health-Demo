@@ -2,8 +2,9 @@ import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
+import boto3
 from dotenv import load_dotenv
 from livekit.agents import (
     Agent,
@@ -17,7 +18,7 @@ from livekit.agents import (
 )
 from livekit.agents.beta.workflows import WarmTransferTask
 from livekit.agents.llm import ToolError
-from livekit.plugins import cartesia, deepgram, openai, silero
+from livekit.plugins import silero
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 logger = logging.getLogger("medication-onboarding")
@@ -27,6 +28,12 @@ logger.setLevel(logging.INFO)
 SIP_TRUNK_ID = "ST_4Ct2FA2tqtEG"
 SUPERVISOR_PHONE_NUMBER = "+14039193117"
 SIP_NUMBER = "+18253054156"
+
+# Amazon Lex Configuration for call center hours bot
+LEX_BOT_ID = "VHSTLQZDML"
+LEX_BOT_ALIAS_ID = "TSTALIASID"
+LEX_LOCALE_ID = "en_US"
+LEX_REGION = "us-east-1"
 
 BASE_DIR = Path(__file__).parent
 PROMPTS_DIR = BASE_DIR / "prompts"
@@ -69,6 +76,9 @@ class SessionState:
     agents: dict = field(default_factory=dict[str, Agent])
     prev_agent: Optional[Agent] = None
     ctx: Optional[JobContext] = None
+    lex_client: Any = None
+    lex_bot_active: bool = False
+    current_llm: str = "openai"
 
     def load_data(self):
         self.patient = load_json("patient.json")
@@ -87,6 +97,8 @@ class SessionState:
             "reminders": self.reminders,
             "scheduledCalls": self.scheduled_calls,
             "currentWorkflow": self.current_workflow,
+            "lexBotActive": self.lex_bot_active,
+            "currentLlm": self.current_llm,
         }
 
 
@@ -106,13 +118,15 @@ Brief summary of any concerns or issues raised by the patient
 
 class BaseAgent(Agent):
     workflow_name: str = "unknown"
+    llm_provider: str = "openai"  # Override in subclasses
 
     async def on_enter(self) -> None:
         agent_name = self.__class__.__name__
-        logger.info(f"Entering {agent_name}")
+        logger.info(f"Entering {agent_name} with LLM: {self.llm_provider}")
 
         state: SessionState = self.session.userdata
         state.current_workflow = self.workflow_name
+        state.current_llm = self.llm_provider
 
         if state.ctx and state.ctx.room:
             await state.ctx.room.local_participant.set_attributes(
@@ -185,14 +199,58 @@ class BaseAgent(Agent):
         )
         self.session.shutdown()
 
+    @function_tool
+    async def get_call_center_hours(self, context: RunContext_T, user_query: str) -> str:
+        """Get call center hours information using the Lex bot.
+        Call this tool when the patient asks about call center hours, support hours,
+        when they can call back, or when agents are available.
+
+        Args:
+            user_query: The patient's question about call center hours
+        """
+        state = context.userdata
+        if not state.lex_client:
+            return "I'm sorry, I don't have access to call center hours information right now."
+
+        try:
+            # Set Lex bot active state and update UI
+            state.lex_bot_active = True
+            await self._update_ui()
+
+            session_id = f"session-{id(state)}"
+            response = state.lex_client.recognize_text(
+                botId=LEX_BOT_ID,
+                botAliasId=LEX_BOT_ALIAS_ID,
+                localeId=LEX_LOCALE_ID,
+                sessionId=session_id,
+                text=user_query,
+            )
+
+            messages = response.get("messages", [])
+            result = " ".join(msg.get("content", "") for msg in messages) if messages else "I couldn't find specific information about call center hours."
+
+            # Clear Lex bot active state and update UI
+            state.lex_bot_active = False
+            await self._update_ui()
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Error querying Lex bot: {e}")
+            # Clear Lex bot active state on error
+            state.lex_bot_active = False
+            await self._update_ui()
+            return "I'm having trouble accessing call center hours right now. Please try again later."
+
 
 class WelcomeAgent(BaseAgent):
     workflow_name = "welcome"
+    llm_provider = "openai"
 
     def __init__(self, state: SessionState) -> None:
         patient_name = state.patient.get("name", "there")
         prompt = load_prompt("welcome.txt").format(patient_name=patient_name)
-        super().__init__(instructions=prompt)
+        super().__init__(instructions=prompt, llm="openai/gpt-4o-mini")
 
     @function_tool
     async def record_consent(self, context: RunContext_T, consented: bool) -> str:
@@ -224,6 +282,7 @@ class WelcomeAgent(BaseAgent):
 
 class SchedulingAgent(BaseAgent):
     workflow_name = "scheduling"
+    llm_provider = "gemini"
 
     def __init__(self, state: SessionState) -> None:
         slots = state.availability.get("pharmacistSlots", [])
@@ -234,7 +293,7 @@ class SchedulingAgent(BaseAgent):
             ]
         )
         prompt = load_prompt("scheduling.txt").format(available_times=available_times)
-        super().__init__(instructions=prompt)
+        super().__init__(instructions=prompt, llm="google/gemini-2.0-flash")
 
     @function_tool
     async def schedule_callback(self, context: RunContext_T, slot_id: str) -> str:
@@ -299,6 +358,7 @@ class SchedulingAgent(BaseAgent):
 
 class MedicationVerificationAgent(BaseAgent):
     workflow_name = "verification"
+    llm_provider = "gemini"
 
     def __init__(self, state: SessionState) -> None:
         meds_list = "\n".join(
@@ -308,7 +368,7 @@ class MedicationVerificationAgent(BaseAgent):
             ]
         )
         prompt = load_prompt("verification.txt").format(meds_list=meds_list)
-        super().__init__(instructions=prompt)
+        super().__init__(instructions=prompt, llm="google/gemini-2.0-flash")
 
     @function_tool
     async def confirm_medications(self, context: RunContext_T, verified: bool) -> str:
@@ -342,10 +402,11 @@ class MedicationVerificationAgent(BaseAgent):
 
 class ConfidenceBarrierAgent(BaseAgent):
     workflow_name = "confidence"
+    llm_provider = "openai"
 
     def __init__(self, state: SessionState) -> None:
         prompt = load_prompt("confidence.txt")
-        super().__init__(instructions=prompt)
+        super().__init__(instructions=prompt, llm="openai/gpt-4o-mini")
 
     @function_tool
     async def record_confidence(
@@ -379,6 +440,7 @@ class ConfidenceBarrierAgent(BaseAgent):
 
 class EducationAgent(BaseAgent):
     workflow_name = "education"
+    llm_provider = "gemini"
 
     def __init__(self, state: SessionState) -> None:
         conditions = state.patient.get("conditions", [])
@@ -394,7 +456,7 @@ class EducationAgent(BaseAgent):
         prompt = load_prompt("education.txt").format(
             education_content="\n\n".join(education_content)
         )
-        super().__init__(instructions=prompt)
+        super().__init__(instructions=prompt, llm="google/gemini-2.0-flash")
 
     @function_tool
     async def transfer_to_reminders(self, context: RunContext_T) -> Agent:
@@ -409,6 +471,7 @@ class EducationAgent(BaseAgent):
 
 class ReminderAgent(BaseAgent):
     workflow_name = "reminders"
+    llm_provider = "openai"
 
     def __init__(self, state: SessionState) -> None:
         meds_schedule = "\n".join(
@@ -418,7 +481,7 @@ class ReminderAgent(BaseAgent):
             ]
         )
         prompt = load_prompt("reminders.txt").format(meds_schedule=meds_schedule)
-        super().__init__(instructions=prompt)
+        super().__init__(instructions=prompt, llm="openai/gpt-4o-mini")
 
     @function_tool
     async def set_daily_reminder(
@@ -488,6 +551,7 @@ class ReminderAgent(BaseAgent):
 
 class WrapUpAgent(BaseAgent):
     workflow_name = "wrapup"
+    llm_provider = "gemini"
 
     def __init__(self, state: SessionState) -> None:
         patient_name = state.patient.get("name", "").split()[0]
@@ -500,7 +564,7 @@ class WrapUpAgent(BaseAgent):
         prompt = load_prompt("wrapup.txt").format(
             patient_name=patient_name, conditions=conditions
         )
-        super().__init__(instructions=prompt)
+        super().__init__(instructions=prompt, llm="google/gemini-2.0-flash")
 
     @function_tool
     async def schedule_followup(self, context: RunContext_T, days: int) -> str:
@@ -543,6 +607,9 @@ async def entrypoint(ctx: JobContext):
     state = SessionState(ctx=ctx)
     state.load_data()
 
+    # Initialize Amazon Lex client for call center hours queries
+    state.lex_client = boto3.client("lexv2-runtime", region_name=LEX_REGION)
+
     agent_classes = [
         ("welcome", WelcomeAgent),
         ("scheduling", SchedulingAgent),
@@ -556,9 +623,8 @@ async def entrypoint(ctx: JobContext):
 
     session = AgentSession[SessionState](
         userdata=state,
-        stt="deepgram/nova-3"
-        llm="google/gemini-2.5-flash-lite",
-        tts="cartesia/sonic-3"
+        stt="deepgram/nova-3",
+        tts="cartesia/sonic-3",
         turn_detection=MultilingualModel(),
         vad=silero.VAD.load(),
     )

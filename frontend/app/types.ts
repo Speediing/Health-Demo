@@ -48,6 +48,8 @@ export interface SessionState {
   reminders: Reminder[];
   scheduledCalls: ScheduledCall[];
   currentWorkflow: WorkflowStep;
+  lexBotActive?: boolean;
+  currentLlm?: "openai" | "gemini";
 }
 
 export type WorkflowStep =

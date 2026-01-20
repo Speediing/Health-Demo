@@ -4,6 +4,7 @@ import { SessionState } from "../types";
 import { WorkflowProgress } from "./WorkflowProgress";
 import { MedicationsList } from "./MedicationsList";
 import { RemindersList } from "./RemindersList";
+import { LexBotIndicator } from "./LexBotIndicator";
 import { User, Mail, Phone, CheckCircle, XCircle, Activity } from "lucide-react";
 
 interface PatientDashboardProps {
@@ -56,7 +57,9 @@ export function PatientDashboard({ state }: PatientDashboardProps) {
         )}
       </div>
 
-      <WorkflowProgress currentStep={state.currentWorkflow} />
+      <LexBotIndicator active={state.lexBotActive ?? false} />
+
+      <WorkflowProgress currentStep={state.currentWorkflow} currentLlm={state.currentLlm} />
 
       <MedicationsList
         medications={state.medications}
