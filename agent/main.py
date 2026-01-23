@@ -1,11 +1,13 @@
 import json
 import logging
 import os
+import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
 import boto3
+from google.cloud.dialogflowcx_v3 import SessionsClient, types as dialogflow_types
 from dotenv import load_dotenv
 from livekit.agents import (
     Agent,
@@ -35,6 +37,11 @@ LEX_BOT_ID = "VHSTLQZDML"
 LEX_BOT_ALIAS_ID = "TSTALIASID"
 LEX_LOCALE_ID = "en_US"
 LEX_REGION = "us-east-1"
+
+# Google Dialogflow Configuration for location finder bot
+DIALOGFLOW_PROJECT_ID = os.environ.get("DIALOGFLOW_PROJECT_ID", "")
+DIALOGFLOW_LOCATION = os.environ.get("DIALOGFLOW_LOCATION", "us-central1")
+DIALOGFLOW_AGENT_ID = os.environ.get("DIALOGFLOW_AGENT_ID", "")
 
 BASE_DIR = Path(__file__).parent
 PROMPTS_DIR = BASE_DIR / "prompts"
@@ -79,6 +86,8 @@ class SessionState:
     ctx: Optional[JobContext] = None
     lex_client: Any = None
     lex_bot_active: bool = False
+    dialogflow_client: Any = None
+    dialogflow_bot_active: bool = False
     current_llm: str = "openai"
     supervisor_phone: str = DEFAULT_SUPERVISOR_PHONE
 
@@ -100,6 +109,7 @@ class SessionState:
             "scheduledCalls": self.scheduled_calls,
             "currentWorkflow": self.current_workflow,
             "lexBotActive": self.lex_bot_active,
+            "dialogflowBotActive": self.dialogflow_bot_active,
             "currentLlm": self.current_llm,
         }
 
@@ -129,8 +139,9 @@ class BaseAgent(Agent):
         state: SessionState = self.session.userdata
         state.current_workflow = self.workflow_name
         state.current_llm = self.llm_provider
-        # Clear Lex bot indicator when entering a new agent
+        # Clear bot indicators when entering a new agent
         state.lex_bot_active = False
+        state.dialogflow_bot_active = False
 
         if state.ctx and state.ctx.room:
             await state.ctx.room.local_participant.set_attributes(
@@ -245,6 +256,61 @@ class BaseAgent(Agent):
             state.lex_bot_active = False
             await self._update_ui()
             return "I'm having trouble accessing call center hours right now. Please try again later."
+
+    @function_tool
+    async def get_closest_location(self, context: RunContext_T, user_query: str) -> str:
+        """Get the closest pharmacy or healthcare location using the Dialogflow bot.
+        Call this tool when the patient asks about finding the nearest location,
+        closest pharmacy, where to pick up medications, or nearby healthcare facilities.
+
+        Args:
+            user_query: The patient's question about finding a location
+        """
+        state = context.userdata
+        if not state.dialogflow_client:
+            return "I'm sorry, I don't have access to location information right now."
+
+        try:
+            # Set Dialogflow bot active state and update UI
+            state.dialogflow_bot_active = True
+            await self._update_ui()
+
+            # Build the session path
+            session_id = str(uuid.uuid4())
+            session_path = f"projects/{DIALOGFLOW_PROJECT_ID}/locations/{DIALOGFLOW_LOCATION}/agents/{DIALOGFLOW_AGENT_ID}/sessions/{session_id}"
+
+            # Create the text input
+            text_input = dialogflow_types.TextInput(text=user_query)
+            query_input = dialogflow_types.QueryInput(
+                text=text_input,
+                language_code="en"
+            )
+
+            # Make the detect intent request
+            request = dialogflow_types.DetectIntentRequest(
+                session=session_path,
+                query_input=query_input
+            )
+            response = state.dialogflow_client.detect_intent(request=request)
+
+            # Extract the response messages
+            query_result = response.query_result
+            response_messages = query_result.response_messages
+            result = " ".join(
+                msg.text.text[0] for msg in response_messages
+                if msg.text and msg.text.text
+            ) if response_messages else "I couldn't find specific location information."
+
+            # Keep dialogflow_bot_active = True while the response is spoken
+            # It will be cleared on next agent enter or next interaction
+            return result
+
+        except Exception as e:
+            logger.error(f"Error querying Dialogflow bot: {e}")
+            # Clear Dialogflow bot active state on error
+            state.dialogflow_bot_active = False
+            await self._update_ui()
+            return "I'm having trouble accessing location information right now. Please try again later."
 
 
 class WelcomeAgent(BaseAgent):
@@ -647,6 +713,14 @@ async def entrypoint(ctx: JobContext):
         aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
         aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
     )
+
+    # Initialize Google Dialogflow client for location queries
+    if DIALOGFLOW_PROJECT_ID and DIALOGFLOW_AGENT_ID:
+        client_options = {"api_endpoint": f"{DIALOGFLOW_LOCATION}-dialogflow.googleapis.com"}
+        state.dialogflow_client = SessionsClient(client_options=client_options)
+        logger.info("Dialogflow client initialized successfully")
+    else:
+        logger.warning("Dialogflow not configured - missing PROJECT_ID or AGENT_ID")
 
     agent_classes = [
         ("welcome", WelcomeAgent),

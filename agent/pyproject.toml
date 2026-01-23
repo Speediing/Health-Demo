@@ -8,4 +8,5 @@ dependencies = [
     "livekit-agents[silero,turn-detector,deepgram,openai,cartesia,google]~=1.3",
     "python-dotenv>=1.0.0",
     "boto3>=1.34.0",
+    "google-cloud-dialogflow-cx>=1.35.0",
 ]

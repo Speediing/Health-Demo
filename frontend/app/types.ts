@@ -49,6 +49,7 @@ export interface SessionState {
   scheduledCalls: ScheduledCall[];
   currentWorkflow: WorkflowStep;
   lexBotActive?: boolean;
+  dialogflowBotActive?: boolean;
   currentLlm?: "openai" | "gemini";
 }
 

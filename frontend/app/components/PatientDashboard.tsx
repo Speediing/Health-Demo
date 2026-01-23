@@ -5,6 +5,7 @@ import { WorkflowProgress } from "./WorkflowProgress";
 import { MedicationsList } from "./MedicationsList";
 import { RemindersList } from "./RemindersList";
 import { LexBotIndicator } from "./LexBotIndicator";
+import { DialogflowBotIndicator } from "./DialogflowBotIndicator";
 import { User, Mail, Phone, CheckCircle, XCircle, Activity } from "lucide-react";
 
 interface PatientDashboardProps {
@@ -58,6 +59,7 @@ export function PatientDashboard({ state }: PatientDashboardProps) {
       </div>
 
       <LexBotIndicator active={state.lexBotActive ?? false} />
+      <DialogflowBotIndicator active={state.dialogflowBotActive ?? false} />
 
       <WorkflowProgress currentStep={state.currentWorkflow} currentLlm={state.currentLlm} />
 

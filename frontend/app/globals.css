@@ -1500,6 +1500,91 @@ body {
   }
 }
 
+/* Google Dialogflow Bot Indicator */
+.dialogflow-bot-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #4285F4 0%, #669DF6 100%);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+  position: relative;
+  overflow: hidden;
+  animation: slideIn 0.3s ease-out;
+}
+
+.dialogflow-bot-icon {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.dialogflow-bot-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.dialogflow-bot-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dialogflow-bot-label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: white;
+}
+
+.dialogflow-bot-badge {
+  padding: 0.125rem 0.5rem;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-sm);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dialogflow-bot-status {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dialogflow-bot-pulse {
+  position: absolute;
+  right: 1rem;
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+  animation: dialogflowPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes dialogflowPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+}
+
 /* UHG Branded Footer */
 .connection-card::after {
   content: "Caring. Healing. Leading.";
