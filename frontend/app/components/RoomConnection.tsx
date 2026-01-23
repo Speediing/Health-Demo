@@ -230,13 +230,21 @@ export function RoomConnection() {
                 <div className="agent-card lex">
                   <Bot size={18} />
                   <span>Amazon Lex</span>
-                  <p>Pharmacy call scheduling</p>
+                  <p>Call center hours</p>
+                </div>
+                <div className="agent-arrow">
+                  <ArrowRightLeft size={16} />
+                </div>
+                <div className="agent-card dialogflow">
+                  <Bot size={18} />
+                  <span>Google Dialogflow</span>
+                  <p>Location finder</p>
                 </div>
               </div>
               <p className="agent-note">
-                When the patient needs to schedule a pharmacist consultation, the system
-                seamlessly transfers the call to Amazon Lex for appointment booking, then
-                returns control to the main agent.
+                The system seamlessly routes queries to specialized agents: Amazon Lex handles
+                call center hours inquiries, while Google Dialogflow helps patients find nearby
+                pharmacy locations. Control returns to the main agent after each interaction.
               </p>
             </div>
 

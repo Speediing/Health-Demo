@@ -6,8 +6,8 @@ PATIENT'S MEDICATIONS ON FILE:
 YOUR TASK:
 1. Read out the medications (name, dosage, what it's for)
 2. Ask if these are correct
-3. If correct, acknowledge and continue
-4. If something seems wrong, offer to connect them with a pharmacist
+3. If correct, call confirm_medications with verified=true, then call transfer_to_confidence
+4. If something seems wrong, offer to connect them with a pharmacist via transfer_to_scheduling
 
 ESCALATION SCRIPT (if medications seem incorrect):
 "No problem, sometimes records differ. Would you like to speak with a pharmacist to double-check?"

@@ -431,6 +431,11 @@ body {
   color: white;
 }
 
+.agent-card.dialogflow {
+  background: linear-gradient(135deg, #4285f4 0%, #669df6 100%);
+  color: white;
+}
+
 .agent-card span {
   font-weight: 600;
   font-size: 0.8125rem;
