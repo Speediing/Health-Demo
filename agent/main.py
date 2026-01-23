@@ -14,6 +14,7 @@ from livekit.agents import (
     Agent,
     AgentSession,
     JobContext,
+    JobRequest,
     RunContext,
     WorkerOptions,
     cli,
@@ -687,11 +688,6 @@ def get_supervisor_phone_from_participants(room) -> str:
 async def entrypoint(ctx: JobContext):
     await ctx.connect()
 
-    # Skip processing for warm transfer rooms - these are handled by WarmTransferTask internally
-    if ctx.room.name.endswith("-human-agent"):
-        logger.info(f"Skipping entrypoint for warm transfer room: {ctx.room.name}")
-        return
-
     load_dotenv(dotenv_path=".env.local")
 
     # Get supervisor phone from participant metadata (set by frontend)
@@ -777,5 +773,14 @@ async def entrypoint(ctx: JobContext):
     )
 
 
+async def request_fnc(req: JobRequest) -> None:
+    """Filter job requests - reject warm transfer rooms as they're handled by WarmTransferTask."""
+    if req.room.name.endswith("-human-agent"):
+        logger.info(f"Rejecting job for warm transfer room: {req.room.name}")
+        await req.reject(terminate=False)  # Don't terminate, just don't assign to this worker
+        return
+    await req.accept()
+
+
 if __name__ == "__main__":
-    cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
+    cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint, request_fnc=request_fnc))
