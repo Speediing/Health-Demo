@@ -687,6 +687,11 @@ def get_supervisor_phone_from_participants(room) -> str:
 async def entrypoint(ctx: JobContext):
     await ctx.connect()
 
+    # Skip processing for warm transfer rooms - these are handled by WarmTransferTask internally
+    if ctx.room.name.endswith("-human-agent"):
+        logger.info(f"Skipping entrypoint for warm transfer room: {ctx.room.name}")
+        return
+
     load_dotenv(dotenv_path=".env.local")
 
     # Get supervisor phone from participant metadata (set by frontend)
