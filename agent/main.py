@@ -8,6 +8,7 @@ from typing import Any, Optional
 
 import boto3
 from google.cloud.dialogflowcx_v3 import SessionsClient, types as dialogflow_types
+from google.oauth2 import service_account
 from dotenv import load_dotenv
 from livekit.agents import (
     Agent,
@@ -716,9 +717,23 @@ async def entrypoint(ctx: JobContext):
 
     # Initialize Google Dialogflow client for location queries
     if DIALOGFLOW_PROJECT_ID and DIALOGFLOW_AGENT_ID:
-        client_options = {"api_endpoint": f"{DIALOGFLOW_LOCATION}-dialogflow.googleapis.com"}
-        state.dialogflow_client = SessionsClient(client_options=client_options)
-        logger.info("Dialogflow client initialized successfully")
+        try:
+            client_options = {"api_endpoint": f"{DIALOGFLOW_LOCATION}-dialogflow.googleapis.com"}
+
+            # Load credentials from environment variable
+            google_creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON")
+            if google_creds_json:
+                creds_info = json.loads(google_creds_json)
+                credentials = service_account.Credentials.from_service_account_info(creds_info)
+                state.dialogflow_client = SessionsClient(credentials=credentials, client_options=client_options)
+                logger.info("Dialogflow client initialized with service account credentials")
+            else:
+                # Fall back to default credentials (for local development)
+                state.dialogflow_client = SessionsClient(client_options=client_options)
+                logger.info("Dialogflow client initialized with default credentials")
+        except Exception as e:
+            logger.error(f"Failed to initialize Dialogflow client: {e}")
+            state.dialogflow_client = None
     else:
         logger.warning("Dialogflow not configured - missing PROJECT_ID or AGENT_ID")
 
