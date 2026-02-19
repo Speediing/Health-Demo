@@ -1,7 +1,7 @@
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -340,15 +340,45 @@ class CalendarAssistant(Agent):
 
         state.booked_flights.append(flight)
 
-        # Add travel block to the calendar
+        # Add travel blocks to the calendar: drive to airport, flight, drive from airport
         try:
-            day_name = datetime.strptime(flight["departure_date"], "%Y-%m-%d").strftime("%A")
+            flight_date = datetime.strptime(flight["departure_date"], "%Y-%m-%d")
+            day_name = flight_date.strftime("%A")
         except ValueError:
             day_name = ""
 
-        travel_event = {
-            "id": f"travel-{flight['id']}",
-            "title": f"✈ {flight['airline']} — {flight['route']}",
+        def _parse_time(t: str) -> datetime:
+            """Parse '7:00 AM' style time into a datetime on the flight date."""
+            return datetime.strptime(f"{flight['departure_date']} {t}", "%Y-%m-%d %I:%M %p")
+
+        def _fmt_time(dt: datetime) -> str:
+            """Format datetime back to '7:00 AM' style."""
+            return dt.strftime("%-I:%M %p")
+
+        dep_dt = _parse_time(flight["departure_time"])
+        arr_dt = _parse_time(flight["arrival_time"])
+
+        # Drive to airport: 2 hours before departure, lasting 1 hour
+        drive_to_start = dep_dt - timedelta(hours=2)
+        drive_to_end = dep_dt - timedelta(hours=1)
+        origin_city = flight["route"].split(" to ")[0].split(" (")[0]
+        dest_city = flight["route"].split(" to ")[1].split(" (")[0]
+
+        drive_to_event = {
+            "id": f"travel-drive-to-{flight['id']}",
+            "title": f"Drive to {origin_city} Airport",
+            "date": flight["departure_date"],
+            "day": day_name,
+            "start_time": _fmt_time(drive_to_start),
+            "end_time": _fmt_time(drive_to_end),
+            "attendees": [],
+            "type": "travel",
+        }
+
+        # Flight itself
+        flight_event = {
+            "id": f"travel-flight-{flight['id']}",
+            "title": f"{flight['airline']} — {flight['route']}",
             "date": flight["departure_date"],
             "day": day_name,
             "start_time": flight["departure_time"],
@@ -356,8 +386,24 @@ class CalendarAssistant(Agent):
             "attendees": [],
             "type": "travel",
         }
-        state.calendar_events.append(travel_event)
-        # Sort events by date then start_time so the travel block appears in order
+
+        # Drive from airport: 30 min after arrival, lasting 1 hour
+        drive_from_start = arr_dt + timedelta(minutes=30)
+        drive_from_end = drive_from_start + timedelta(hours=1)
+
+        drive_from_event = {
+            "id": f"travel-drive-from-{flight['id']}",
+            "title": f"Drive from {dest_city} Airport",
+            "date": flight["departure_date"],
+            "day": day_name,
+            "start_time": _fmt_time(drive_from_start),
+            "end_time": _fmt_time(drive_from_end),
+            "attendees": [],
+            "type": "travel",
+        }
+
+        state.calendar_events.extend([drive_to_event, flight_event, drive_from_event])
+        # Sort events by date then start_time so the travel blocks appear in order
         state.calendar_events.sort(key=lambda e: (e["date"], e["start_time"]))
 
         logger.info(f"Booked flight: {flight['airline']} {flight['route']} on {flight['departure_date']}")
@@ -366,7 +412,7 @@ class CalendarAssistant(Agent):
             f"Flight booked! {flight['airline']} from {flight['route']} "
             f"on {flight['departure_date']}, departing at {flight['departure_time']} "
             f"and arriving at {flight['arrival_time']}. Price: {flight['price']}. "
-            f"I've also added the travel time to your calendar."
+            f"I've also added the travel time to your calendar, including the drive to and from the airport."
         )
 
     @function_tool
