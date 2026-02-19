@@ -305,6 +305,7 @@ class CalendarAssistant(Agent):
             origin: Origin city name (e.g., "Calgary")
             destination: Destination city name (e.g., "Vancouver")
         """
+        state = context.userdata
         origin_lower = origin.lower()
         dest_lower = destination.lower()
 
@@ -317,13 +318,46 @@ class CalendarAssistant(Agent):
         if not matching:
             return f"No flights found from {origin} to {destination}."
 
-        result = f"Available flights from {origin} to {destination}:\n"
+        def _parse_time(date_str: str, time_str: str) -> datetime:
+            return datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %I:%M %p")
+
+        def _find_conflicts(flight: dict) -> list[dict]:
+            """Find calendar events that overlap with the travel window (2hr before dep to arrival)."""
+            dep_dt = _parse_time(flight["departure_date"], flight["departure_time"])
+            arr_dt = _parse_time(flight["departure_date"], flight["arrival_time"])
+            travel_start = dep_dt - timedelta(hours=2)  # need to be at airport
+            travel_end = arr_dt
+
+            conflicts = []
+            for evt in state.calendar_events:
+                if evt["date"] != flight["departure_date"]:
+                    continue
+                if evt.get("type") == "travel":
+                    continue
+                evt_start = _parse_time(evt["date"], evt["start_time"])
+                evt_end = _parse_time(evt["date"], evt["end_time"])
+                # Overlap check: event starts before travel ends AND event ends after travel starts
+                if evt_start < travel_end and evt_end > travel_start:
+                    conflicts.append(evt)
+            return conflicts
+
+        result = f"Available flights from {origin} to {destination}:\n\n"
         for f in matching:
+            conflicts = _find_conflicts(f)
             result += (
                 f"- {f['airline']} on {f['departure_date']}: "
                 f"departs {f['departure_time']}, arrives {f['arrival_time']} "
                 f"({f['price']}) [flight_id: {f['id']}]\n"
             )
+            if conflicts:
+                conflict_names = ", ".join(
+                    f"'{c['title']}' ({c['start_time']}-{c['end_time']}, id: {c['id']})"
+                    for c in conflicts
+                )
+                result += f"  ** CONFLICTS with: {conflict_names}\n"
+            else:
+                result += f"  No calendar conflicts.\n"
+            result += "\n"
         return result
 
     @function_tool
