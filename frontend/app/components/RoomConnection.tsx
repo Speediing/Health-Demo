@@ -12,7 +12,7 @@ import { RoomEvent } from "livekit-client";
 import { SessionState } from "../types";
 import { ChatPanel } from "./ChatPanel";
 import { CalendarDashboard } from "./CalendarDashboard";
-import { Loader2, PhoneCall, PhoneOff, Mic, Calendar, Plane, Bot } from "lucide-react";
+import { Loader2, PhoneCall, PhoneOff, Mic, Calendar, Plane, Bot, Zap } from "lucide-react";
 
 interface ConnectionState {
   token: string;
@@ -106,19 +106,18 @@ export function RoomConnection() {
       <div className="landing-page">
         <div className="landing-header">
           <div className="logo">
-            <span className="logo-icon">
-              <Calendar size={22} />
-            </span>
-            <span className="logo-text">Calendar Assistant</span>
+            <img src="/kpmg-logo.svg" alt="KPMG" className="logo-kpmg" />
+            <span className="logo-divider" />
+            <span className="logo-text">Super Agent</span>
           </div>
-          <span className="demo-badge">Voice AI Demo</span>
+          <span className="demo-badge">AI-Powered</span>
         </div>
 
         <div className="landing-hero">
-          <h1>Voice-Powered Calendar & Travel Assistant</h1>
+          <h1>KPMG Super Agent</h1>
           <p className="hero-subtitle">
-            Talk to your AI assistant to manage your calendar, book travel,
-            and automatically reschedule conflicting meetings.
+            Your AI-powered assistant that manages your calendar, books travel,
+            and automatically resolves scheduling conflicts — all through natural voice conversation.
           </p>
         </div>
 
@@ -126,7 +125,7 @@ export function RoomConnection() {
           <div className="demo-overview">
             <h2>How It Works</h2>
             <p>
-              Simply tell the assistant what you need. It can look up your
+              Simply tell the Super Agent what you need. It can look up your
               calendar, find flights, book travel, and move meetings that
               conflict with your plans — all through natural conversation.
             </p>
@@ -138,21 +137,21 @@ export function RoomConnection() {
                   <span className="step-number">1</span>
                   <div>
                     <strong>Ask for Help</strong>
-                    <p>Tell the assistant you want to book travel for next week</p>
+                    <p>Tell the Super Agent you need to book travel</p>
                   </div>
                 </div>
                 <div className="preview-step">
                   <span className="step-number">2</span>
                   <div>
                     <strong>Flight Search</strong>
-                    <p>The assistant finds available flights and suggests the best options</p>
+                    <p>The agent finds available flights and presents the best options</p>
                   </div>
                 </div>
                 <div className="preview-step">
                   <span className="step-number">3</span>
                   <div>
-                    <strong>Calendar Check</strong>
-                    <p>It checks your calendar for conflicts during travel times</p>
+                    <strong>Conflict Detection</strong>
+                    <p>Automatically checks your calendar for scheduling conflicts</p>
                   </div>
                 </div>
                 <div className="preview-step">
@@ -192,7 +191,7 @@ export function RoomConnection() {
               </div>
               <div className="feature-card">
                 <div className="feature-icon multi-llm">
-                  <Bot size={20} />
+                  <Zap size={20} />
                 </div>
                 <h4>Smart Conflict Resolution</h4>
                 <p>Automatically identifies and resolves scheduling conflicts</p>
@@ -221,7 +220,7 @@ export function RoomConnection() {
             )}
           </button>
           <p className="cta-note">
-            Click to begin a voice session with your calendar assistant
+            Click to begin a voice session with your KPMG Super Agent
           </p>
         </div>
       </div>

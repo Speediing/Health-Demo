@@ -14,8 +14,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Calendar Assistant - Voice AI Demo",
-  description: "A voice-powered calendar assistant that helps manage your schedule and book travel",
+  title: "KPMG Super Agent",
+  description: "AI-powered voice assistant that manages your calendar, books travel, and resolves scheduling conflicts",
 };
 
 export default function RootLayout({

@@ -245,6 +245,34 @@ class SessionState:
         }
 
 
+def _speakable_time(t: str) -> str:
+    """Convert '7:00 AM' to 'seven AM', '12:30 PM' to 'twelve thirty PM' for TTS."""
+    try:
+        dt = datetime.strptime(t.strip(), "%I:%M %p")
+        hour = dt.strftime("%-I")
+        minute = dt.strftime("%M")
+        period = dt.strftime("%p")
+        # Number words for hours
+        hour_words = {
+            "1": "one", "2": "two", "3": "three", "4": "four", "5": "five",
+            "6": "six", "7": "seven", "8": "eight", "9": "nine", "10": "ten",
+            "11": "eleven", "12": "twelve",
+        }
+        h = hour_words.get(hour, hour)
+        if minute == "00":
+            return f"{h} {period}"
+        elif minute == "15":
+            return f"{h} fifteen {period}"
+        elif minute == "30":
+            return f"{h} thirty {period}"
+        elif minute == "45":
+            return f"{h} forty-five {period}"
+        else:
+            return f"{h} {minute} {period}"
+    except ValueError:
+        return t
+
+
 RunContext_T = RunContext[SessionState]
 
 
@@ -289,7 +317,7 @@ class CalendarAssistant(Agent):
         for evt in events:
             result += (
                 f"- {evt['title']} on {evt['day']} {evt['date']} "
-                f"from {evt['start_time']} to {evt['end_time']} "
+                f"from {_speakable_time(evt['start_time'])} to {_speakable_time(evt['end_time'])} "
                 f"(attendees: {', '.join(evt['attendees'])})\n"
             )
         await self._update_ui(context)
@@ -346,12 +374,12 @@ class CalendarAssistant(Agent):
             conflicts = _find_conflicts(f)
             result += (
                 f"- {f['airline']} on {f['departure_date']}: "
-                f"departs {f['departure_time']}, arrives {f['arrival_time']} "
+                f"departs {_speakable_time(f['departure_time'])}, arrives {_speakable_time(f['arrival_time'])} "
                 f"({f['price']}) [flight_id: {f['id']}]\n"
             )
             if conflicts:
                 conflict_names = ", ".join(
-                    f"'{c['title']}' ({c['start_time']}-{c['end_time']}, id: {c['id']})"
+                    f"'{c['title']}' ({_speakable_time(c['start_time'])}-{_speakable_time(c['end_time'])}, id: {c['id']})"
                     for c in conflicts
                 )
                 result += f"  ** CONFLICTS with: {conflict_names}\n"
@@ -444,8 +472,8 @@ class CalendarAssistant(Agent):
         await self._update_ui(context)
         return (
             f"Flight booked! {flight['airline']} from {flight['route']} "
-            f"on {flight['departure_date']}, departing at {flight['departure_time']} "
-            f"and arriving at {flight['arrival_time']}. Price: {flight['price']}. "
+            f"on {flight['departure_date']}, departing at {_speakable_time(flight['departure_time'])} "
+            f"and arriving at {_speakable_time(flight['arrival_time'])}. Price: {flight['price']}. "
             f"I've also added the travel time to your calendar, including the drive to and from the airport."
         )
 
@@ -490,7 +518,7 @@ class CalendarAssistant(Agent):
         logger.info(f"Moved meeting: {event['title']} to {new_date} {new_start_time}-{new_end_time}")
         await self._update_ui(context)
         return (
-            f"Done! Moved '{event['title']}' to {new_date} from {new_start_time} to {new_end_time}. "
+            f"Done! Moved '{event['title']}' to {new_date} from {_speakable_time(new_start_time)} to {_speakable_time(new_end_time)}. "
             f"Calendar invites have been updated and {attendees_str} have been notified."
         )
 
