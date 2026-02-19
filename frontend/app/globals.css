@@ -834,6 +834,43 @@ body {
   animation: highlight 0.5s ease-out;
 }
 
+.event-card.travel {
+  background: linear-gradient(135deg, #eff6ff 0%, #ecfdf5 100%);
+  border: 1px solid #bfdbfe;
+  animation: slideIn 0.4s ease-out;
+}
+
+.event-card.travel .event-title {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--blue);
+}
+
+.travel-icon {
+  color: var(--blue);
+  flex-shrink: 0;
+}
+
+.event-time-block.travel .event-time-start,
+.event-time-block.travel .event-time-end {
+  color: var(--blue);
+}
+
+.event-travel-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.375rem;
+  padding: 0.125rem 0.4375rem;
+  background: var(--blue);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 0.625rem;
+  font-weight: 600;
+  animation: fadeIn 0.3s ease-out;
+}
+
 @keyframes highlight {
   0% { background: #ede9fe; }
   100% { background: #faf5ff; }

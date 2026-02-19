@@ -10,6 +10,7 @@ export interface CalendarEvent {
   original_date?: string;
   original_start_time?: string;
   original_end_time?: string;
+  type?: "meeting" | "travel";
 }
 
 export interface BookedFlight {

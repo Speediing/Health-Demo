@@ -1,6 +1,7 @@
 import json
 import logging
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -203,6 +204,7 @@ class SessionState:
                 "end_time": evt["end_time"],
                 "attendees": evt["attendees"],
                 "moved": evt["id"] in moved_ids,
+                "type": evt.get("type", "meeting"),
             }
             # Include original times if the event was moved
             if evt["id"] in moved_ids:
@@ -337,12 +339,34 @@ class CalendarAssistant(Agent):
             return "Sorry, that flight is no longer available."
 
         state.booked_flights.append(flight)
+
+        # Add travel block to the calendar
+        try:
+            day_name = datetime.strptime(flight["departure_date"], "%Y-%m-%d").strftime("%A")
+        except ValueError:
+            day_name = ""
+
+        travel_event = {
+            "id": f"travel-{flight['id']}",
+            "title": f"✈ {flight['airline']} — {flight['route']}",
+            "date": flight["departure_date"],
+            "day": day_name,
+            "start_time": flight["departure_time"],
+            "end_time": flight["arrival_time"],
+            "attendees": [],
+            "type": "travel",
+        }
+        state.calendar_events.append(travel_event)
+        # Sort events by date then start_time so the travel block appears in order
+        state.calendar_events.sort(key=lambda e: (e["date"], e["start_time"]))
+
         logger.info(f"Booked flight: {flight['airline']} {flight['route']} on {flight['departure_date']}")
         await self._update_ui(context)
         return (
             f"Flight booked! {flight['airline']} from {flight['route']} "
             f"on {flight['departure_date']}, departing at {flight['departure_time']} "
-            f"and arriving at {flight['arrival_time']}. Price: {flight['price']}."
+            f"and arriving at {flight['arrival_time']}. Price: {flight['price']}. "
+            f"I've also added the travel time to your calendar."
         )
 
     @function_tool
@@ -404,7 +428,7 @@ async def entrypoint(ctx: JobContext):
     session = AgentSession[SessionState](
         userdata=state,
         stt="deepgram/nova-3",
-        tts="cartesia/sonic-3",
+        tts="elevenlabs/eleven_turbo_v2_5:Xb7hH8MSUJpSbSDYk0k2",
         turn_detection=MultilingualModel(),
         vad=silero.VAD.load(),
     )

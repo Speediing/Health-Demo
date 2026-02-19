@@ -53,22 +53,34 @@ function DashboardHeader({ state }: { state: SessionState }) {
 
 function EventCard({ event }: { event: CalendarEvent }) {
   const isMoved = event.moved;
+  const isTravel = event.type === "travel";
 
   return (
-    <div className={`event-card ${isMoved ? "moved" : ""}`}>
+    <div className={`event-card ${isMoved ? "moved" : ""} ${isTravel ? "travel" : ""}`}>
       <div className="event-card-left">
-        <div className="event-time-block">
+        <div className={`event-time-block ${isTravel ? "travel" : ""}`}>
           <span className="event-time-start">{event.start_time}</span>
           <span className="event-time-sep">-</span>
           <span className="event-time-end">{event.end_time}</span>
         </div>
       </div>
       <div className="event-card-right">
-        <div className="event-title">{event.title}</div>
-        <div className="event-attendees">
-          <Users size={11} />
-          <span>{event.attendees.join(", ")}</span>
+        <div className="event-title">
+          {isTravel && <Plane size={13} className="travel-icon" />}
+          {event.title}
         </div>
+        {!isTravel && event.attendees.length > 0 && (
+          <div className="event-attendees">
+            <Users size={11} />
+            <span>{event.attendees.join(", ")}</span>
+          </div>
+        )}
+        {isTravel && (
+          <div className="event-travel-badge">
+            <Plane size={11} />
+            <span>Travel</span>
+          </div>
+        )}
         {isMoved && (
           <div className="event-moved-badge">
             <MoveRight size={11} />
