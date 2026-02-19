@@ -14,8 +14,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "UnitedHealthcare - Medication Onboarding",
-  description: "Your personal medication onboarding assistant powered by UnitedHealthcare",
+  title: "Calendar Assistant - Voice AI Demo",
+  description: "A voice-powered calendar assistant that helps manage your schedule and book travel",
 };
 
 export default function RootLayout({

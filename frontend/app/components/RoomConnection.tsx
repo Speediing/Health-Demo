@@ -11,8 +11,8 @@ import "@livekit/components-styles";
 import { RoomEvent } from "livekit-client";
 import { SessionState } from "../types";
 import { ChatPanel } from "./ChatPanel";
-import { PatientDashboard } from "./PatientDashboard";
-import { Loader2, PhoneCall, PhoneOff, Mic, LayoutDashboard, ListChecks, Cpu, Bot, ArrowRightLeft, Phone, UserCheck, Settings, ChevronDown, ChevronUp } from "lucide-react";
+import { CalendarDashboard } from "./CalendarDashboard";
+import { Loader2, PhoneCall, PhoneOff, Mic, Calendar, Plane, Bot } from "lucide-react";
 
 interface ConnectionState {
   token: string;
@@ -69,19 +69,16 @@ export function RoomConnection() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [supervisorPhone, setSupervisorPhone] = useState("+14039193117");
-  const [showSettings, setShowSettings] = useState(false);
 
   const connect = async () => {
     setIsConnecting(true);
     setError(null);
 
     try {
-      const roomName = `health-${Date.now()}`;
+      const roomName = `calendar-${Date.now()}`;
       const params = new URLSearchParams({
         room: roomName,
-        username: "Patient",
-        supervisorPhone: supervisorPhone,
+        username: "User",
       });
       const res = await fetch(`/api/token?${params}`);
       if (!res.ok) throw new Error("Failed to get token");
@@ -109,73 +106,60 @@ export function RoomConnection() {
       <div className="landing-page">
         <div className="landing-header">
           <div className="logo">
-            <span className="logo-icon">U</span>
-            <span className="logo-text">UnitedHealthcare</span>
+            <span className="logo-icon">
+              <Calendar size={22} />
+            </span>
+            <span className="logo-text">Calendar Assistant</span>
           </div>
-          <span className="demo-badge">AI Demo</span>
+          <span className="demo-badge">Voice AI Demo</span>
         </div>
 
         <div className="landing-hero">
-          <h1>AI-Powered Medication Onboarding</h1>
+          <h1>Voice-Powered Calendar & Travel Assistant</h1>
           <p className="hero-subtitle">
-            Experience an intelligent voice assistant that guides patients through
-            medication onboarding while providing real-time insights to care teams.
+            Talk to your AI assistant to manage your calendar, book travel,
+            and automatically reschedule conflicting meetings.
           </p>
         </div>
 
         <div className="landing-content">
           <div className="demo-overview">
-            <h2>What This Demo Shows</h2>
+            <h2>How It Works</h2>
             <p>
-              This demonstration showcases how AI can transform the medication
-              onboarding experience. A voice-enabled assistant guides patients
-              through a structured conversation while a real-time dashboard
-              displays extracted insights for care teams.
+              Simply tell the assistant what you need. It can look up your
+              calendar, find flights, book travel, and move meetings that
+              conflict with your plans — all through natural conversation.
             </p>
 
             <div className="workflow-preview">
-              <h3>Conversation Flow</h3>
+              <h3>Example Flow</h3>
               <div className="workflow-steps-preview">
                 <div className="preview-step">
                   <span className="step-number">1</span>
                   <div>
-                    <strong>Welcome & Consent</strong>
-                    <p>Greet patient, verify identity, obtain verbal consent</p>
+                    <strong>Ask for Help</strong>
+                    <p>Tell the assistant you want to book travel for next week</p>
                   </div>
                 </div>
                 <div className="preview-step">
                   <span className="step-number">2</span>
                   <div>
-                    <strong>Medication Verification</strong>
-                    <p>Review each medication, confirm understanding of dosage and timing</p>
+                    <strong>Flight Search</strong>
+                    <p>The assistant finds available flights and suggests the best options</p>
                   </div>
                 </div>
                 <div className="preview-step">
                   <span className="step-number">3</span>
                   <div>
-                    <strong>Confidence Check-in</strong>
-                    <p>Assess patient comfort level, identify concerns or questions</p>
+                    <strong>Calendar Check</strong>
+                    <p>It checks your calendar for conflicts during travel times</p>
                   </div>
                 </div>
                 <div className="preview-step">
                   <span className="step-number">4</span>
                   <div>
-                    <strong>Education</strong>
-                    <p>Provide personalized guidance on side effects and interactions</p>
-                  </div>
-                </div>
-                <div className="preview-step">
-                  <span className="step-number">5</span>
-                  <div>
-                    <strong>Reminders Setup</strong>
-                    <p>Configure text reminders, calendar events, auto-refill preferences</p>
-                  </div>
-                </div>
-                <div className="preview-step">
-                  <span className="step-number">6</span>
-                  <div>
-                    <strong>Wrap Up</strong>
-                    <p>Schedule follow-up calls, pharmacist consultations if needed</p>
+                    <strong>Reschedule & Book</strong>
+                    <p>Moves conflicting meetings, notifies attendees, and books your flight</p>
                   </div>
                 </div>
               </div>
@@ -189,120 +173,32 @@ export function RoomConnection() {
                 <div className="feature-icon voice">
                   <Mic size={20} />
                 </div>
-                <h4>Voice-First Experience</h4>
-                <p>Natural conversation using speech-to-text and text-to-speech for accessible patient interactions</p>
+                <h4>Voice-First</h4>
+                <p>Natural conversation for hands-free calendar and travel management</p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon realtime">
-                  <LayoutDashboard size={20} />
+                  <Calendar size={20} />
                 </div>
-                <h4>Real-Time Dashboard</h4>
-                <p>Live extraction of patient data, concerns, and confidence scores as the conversation progresses</p>
+                <h4>Calendar Management</h4>
+                <p>View, move, and reschedule meetings with automatic attendee notifications</p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon workflow">
-                  <ListChecks size={20} />
+                  <Plane size={20} />
                 </div>
-                <h4>Structured Workflow</h4>
-                <p>Guided conversation flow ensures consistent, compliant medication onboarding sessions</p>
+                <h4>Travel Booking</h4>
+                <p>Search flights, compare options, and book travel all through voice</p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon multi-llm">
-                  <Cpu size={20} />
+                  <Bot size={20} />
                 </div>
-                <h4>Multi-LLM Support</h4>
-                <p>Seamlessly switches between OpenAI and Google Gemini based on task requirements</p>
-              </div>
-            </div>
-
-            <div className="multi-agent-section">
-              <h3>Multi-Agent Architecture</h3>
-              <p>This demo showcases intelligent agent handoffs between different AI systems:</p>
-              <div className="agent-flow">
-                <div className="agent-card primary">
-                  <Bot size={18} />
-                  <span>LiveKit Voice Agent</span>
-                  <p>Primary conversation handler</p>
-                </div>
-                <div className="agent-arrow">
-                  <ArrowRightLeft size={16} />
-                </div>
-                <div className="agent-card lex">
-                  <Bot size={18} />
-                  <span>Amazon Lex</span>
-                  <p>Call center hours</p>
-                </div>
-                <div className="agent-arrow">
-                  <ArrowRightLeft size={16} />
-                </div>
-                <div className="agent-card dialogflow">
-                  <Bot size={18} />
-                  <span>Google Dialogflow</span>
-                  <p>Location finder</p>
-                </div>
-              </div>
-              <p className="agent-note">
-                The system seamlessly routes queries to specialized agents: Amazon Lex handles
-                call center hours inquiries, while Google Dialogflow helps patients find nearby
-                pharmacy locations. Control returns to the main agent after each interaction.
-              </p>
-            </div>
-
-            <div className="telephony-section">
-              <h3>Telephony & Escalation Support</h3>
-              <div className="telephony-features">
-                <div className="telephony-card">
-                  <div className="telephony-icon">
-                    <Phone size={18} />
-                  </div>
-                  <div className="telephony-content">
-                    <strong>PSTN Telephony Integration</strong>
-                    <p>Supports inbound and outbound calls over traditional phone lines, making the AI assistant accessible to patients without internet access.</p>
-                  </div>
-                </div>
-                <div className="telephony-card">
-                  <div className="telephony-icon supervisor">
-                    <UserCheck size={18} />
-                  </div>
-                  <div className="telephony-content">
-                    <strong>Warm Handoff to Supervisor</strong>
-                    <p>Say "I'd like to speak to a supervisor" at any time. The system performs a warm transfer, briefing the human agent on the conversation context before connecting.</p>
-                  </div>
-                </div>
+                <h4>Smart Conflict Resolution</h4>
+                <p>Automatically identifies and resolves scheduling conflicts</p>
               </div>
             </div>
           </div>
-        </div>
-
-        <div className="settings-panel">
-          <button
-            className="settings-toggle"
-            onClick={() => setShowSettings(!showSettings)}
-          >
-            <Settings size={16} />
-            <span>Demo Settings</span>
-            {showSettings ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </button>
-          {showSettings && (
-            <div className="settings-content">
-              <div className="setting-item">
-                <label htmlFor="supervisor-phone">
-                  <UserCheck size={14} />
-                  Supervisor Phone Number
-                </label>
-                <input
-                  id="supervisor-phone"
-                  type="tel"
-                  value={supervisorPhone}
-                  onChange={(e) => setSupervisorPhone(e.target.value)}
-                  placeholder="+1234567890"
-                />
-                <span className="setting-hint">
-                  Phone number for warm transfer escalations
-                </span>
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="landing-cta">
@@ -320,12 +216,12 @@ export function RoomConnection() {
             ) : (
               <>
                 <PhoneCall size={20} />
-                Start Demo Session
+                Start Session
               </>
             )}
           </button>
           <p className="cta-note">
-            Click to begin an interactive voice session with the AI assistant
+            Click to begin a voice session with your calendar assistant
           </p>
         </div>
       </div>
@@ -361,11 +257,10 @@ export function RoomConnection() {
             </button>
           </div>
           <div className="dashboard-section">
-            <PatientDashboard state={sessionState} />
+            <CalendarDashboard state={sessionState} />
           </div>
         </div>
       </LiveKitRoom>
     </div>
   );
 }
-

@@ -142,7 +142,7 @@ export function ChatPanel() {
             size={18}
             className={isAgentSpeaking ? "speaking" : ""}
           />
-          <span>UnitedHealthcare Assistant</span>
+          <span>Calendar Assistant</span>
         </div>
         <div className="mode-toggle">
           <button
@@ -207,4 +207,3 @@ export function ChatPanel() {
     </div>
   );
 }
-

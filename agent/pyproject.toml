@@ -1,12 +1,10 @@
 [project]
-name = "health-agent"
+name = "calendar-agent"
 version = "0.1.0"
-description = "HealthAssist medication onboarding voice agent"
+description = "Calendar assistant voice agent for travel booking"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "livekit-agents[silero,turn-detector,deepgram,openai,cartesia,google]~=1.3",
+    "livekit-agents[silero,turn-detector,deepgram,openai,cartesia]~=1.3",
     "python-dotenv>=1.0.0",
-    "boto3>=1.34.0",
-    "google-cloud-dialogflow-cx>=1.35.0",
 ]

@@ -1,74 +1,37 @@
-export interface Patient {
+export interface CalendarEvent {
   id: string;
-  name: string;
-  email: string;
-  phone: string;
-  dateOfBirth: string;
-  conditions: string[];
+  title: string;
+  date: string;
+  day: string;
+  start_time: string;
+  end_time: string;
+  attendees: string[];
+  moved?: boolean;
+  original_date?: string;
+  original_start_time?: string;
+  original_end_time?: string;
 }
 
-export interface Medication {
+export interface BookedFlight {
   id: string;
-  name: string;
-  dosage: string;
-  condition: string;
-  conditionName: string;
-  frequency: string;
-  instructions: string;
-  purpose: string;
-  sideEffects: string[];
-  verified: boolean;
+  airline: string;
+  route: string;
+  departure_date: string;
+  departure_time: string;
+  arrival_time: string;
+  price: string;
 }
 
-export interface Reminder {
-  type: "daily_text" | "calendar" | "auto_refill";
-  time?: string;
-  medications?: string[];
-  frequency?: string;
-  enabled?: boolean;
-}
-
-export interface ScheduledCall {
-  type: "pharmacist" | "followup";
-  date?: string;
-  time?: string;
-  pharmacist?: string;
-  reason?: string;
-  days?: number;
-  description?: string;
+export interface MovedMeeting {
+  event_id: string;
+  title: string;
+  old: string;
+  new: string;
+  attendees: string[];
 }
 
 export interface SessionState {
-  patient: Patient;
-  medications: Medication[];
-  consented: boolean;
-  medicationsVerified: boolean;
-  confidenceScore: number | null;
-  concerns: string[];
-  reminders: Reminder[];
-  scheduledCalls: ScheduledCall[];
-  currentWorkflow: WorkflowStep;
-  lexBotActive?: boolean;
-  dialogflowBotActive?: boolean;
-  currentLlm?: "openai" | "gemini";
+  calendarEvents: CalendarEvent[];
+  bookedFlights: BookedFlight[];
+  movedMeetings: MovedMeeting[];
 }
-
-export type WorkflowStep =
-  | "welcome"
-  | "scheduling"
-  | "verification"
-  | "confidence"
-  | "education"
-  | "reminders"
-  | "wrapup"
-  | "completed";
-
-export const WORKFLOW_STEPS: { key: WorkflowStep; label: string }[] = [
-  { key: "welcome", label: "Welcome" },
-  { key: "verification", label: "Verify Meds" },
-  { key: "confidence", label: "Check-in" },
-  { key: "education", label: "Education" },
-  { key: "reminders", label: "Reminders" },
-  { key: "wrapup", label: "Wrap Up" },
-];
-
