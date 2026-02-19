@@ -9,10 +9,46 @@ import {
   Users,
   Check,
   MoveRight,
+  MapPin,
+  CalendarDays,
+  TrendingUp,
 } from "lucide-react";
 
 interface CalendarDashboardProps {
   state: SessionState | null;
+}
+
+function DashboardHeader({ state }: { state: SessionState }) {
+  const totalEvents = state.calendarEvents?.length || 0;
+  const movedCount = state.movedMeetings?.length || 0;
+  const flightCount = state.bookedFlights?.length || 0;
+
+  return (
+    <div className="dashboard-header">
+      <div className="dashboard-title">
+        <CalendarDays size={20} />
+        <h2>Your Week at a Glance</h2>
+      </div>
+      <div className="dashboard-stats">
+        <div className="stat-pill">
+          <Calendar size={13} />
+          <span>{totalEvents} events</span>
+        </div>
+        {flightCount > 0 && (
+          <div className="stat-pill booked">
+            <Plane size={13} />
+            <span>{flightCount} flight{flightCount !== 1 ? "s" : ""}</span>
+          </div>
+        )}
+        {movedCount > 0 && (
+          <div className="stat-pill moved">
+            <MoveRight size={13} />
+            <span>{movedCount} moved</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function EventCard({ event }: { event: CalendarEvent }) {
@@ -20,26 +56,38 @@ function EventCard({ event }: { event: CalendarEvent }) {
 
   return (
     <div className={`event-card ${isMoved ? "moved" : ""}`}>
-      <div className="event-time">
-        <Clock size={12} />
-        <span>{event.start_time} - {event.end_time}</span>
-      </div>
-      <div className="event-title">{event.title}</div>
-      <div className="event-attendees">
-        <Users size={12} />
-        <span>{event.attendees.join(", ")}</span>
-      </div>
-      {isMoved && (
-        <div className="event-moved-badge">
-          <MoveRight size={12} />
-          <span>Rescheduled</span>
+      <div className="event-card-left">
+        <div className="event-time-block">
+          <span className="event-time-start">{event.start_time}</span>
+          <span className="event-time-sep">-</span>
+          <span className="event-time-end">{event.end_time}</span>
         </div>
-      )}
+      </div>
+      <div className="event-card-right">
+        <div className="event-title">{event.title}</div>
+        <div className="event-attendees">
+          <Users size={11} />
+          <span>{event.attendees.join(", ")}</span>
+        </div>
+        {isMoved && (
+          <div className="event-moved-badge">
+            <MoveRight size={11} />
+            <span>Rescheduled</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
+function formatDateLabel(dateKey: string): { dayName: string; dateStr: string } {
+  const parts = dateKey.split(", ");
+  return { dayName: parts[0], dateStr: parts[1] || "" };
+}
+
 function CalendarSection({ events }: { events: CalendarEvent[] }) {
+  if (!events || events.length === 0) return null;
+
   const eventsByDate = events.reduce((acc, evt) => {
     const key = `${evt.day}, ${evt.date}`;
     if (!acc[key]) acc[key] = [];
@@ -57,26 +105,43 @@ function CalendarSection({ events }: { events: CalendarEvent[] }) {
     <div className="calendar-section">
       <div className="section-header">
         <Calendar size={18} />
-        <h3>This Week</h3>
+        <h3>Calendar</h3>
       </div>
       <div className="calendar-days">
-        {sortedDates.map((dateKey) => (
-          <div key={dateKey} className="calendar-day">
-            <div className="day-header">{dateKey}</div>
-            <div className="day-events">
-              {eventsByDate[dateKey].map((evt) => (
-                <EventCard key={evt.id} event={evt} />
-              ))}
+        {sortedDates.map((dateKey) => {
+          const { dayName, dateStr } = formatDateLabel(dateKey);
+          const hasMovedEvent = eventsByDate[dateKey].some((e) => e.moved);
+
+          return (
+            <div
+              key={dateKey}
+              className={`calendar-day ${hasMovedEvent ? "has-changes" : ""}`}
+            >
+              <div className="day-header">
+                <span className="day-name">{dayName}</span>
+                <span className="day-date">{dateStr}</span>
+                {hasMovedEvent && (
+                  <span className="day-change-indicator">
+                    <TrendingUp size={11} />
+                    Updated
+                  </span>
+                )}
+              </div>
+              <div className="day-events">
+                {eventsByDate[dateKey].map((evt) => (
+                  <EventCard key={evt.id} event={evt} />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
 function FlightsSection({ flights }: { flights: BookedFlight[] }) {
-  if (flights.length === 0) return null;
+  if (!flights || flights.length === 0) return null;
 
   return (
     <div className="flights-section">
@@ -86,37 +151,58 @@ function FlightsSection({ flights }: { flights: BookedFlight[] }) {
         <span className="flight-count">{flights.length}</span>
       </div>
       <div className="flights-list">
-        {flights.map((flight) => (
-          <div key={flight.id} className="flight-card">
-            <div className="flight-airline">{flight.airline}</div>
-            <div className="flight-route">
-              <span>{flight.route.split(" to ")[0]}</span>
-              <ArrowRight size={14} />
-              <span>{flight.route.split(" to ")[1]}</span>
-            </div>
-            <div className="flight-details">
-              <div className="flight-time">
-                <Clock size={12} />
-                <span>{flight.departure_time} - {flight.arrival_time}</span>
+        {flights.map((flight) => {
+          const [origin, destination] = flight.route.split(" to ");
+          return (
+            <div key={flight.id} className="flight-card">
+              <div className="flight-card-top">
+                <div className="flight-airline">{flight.airline}</div>
+                <div className="flight-price">{flight.price}</div>
               </div>
-              <div className="flight-date">{flight.departure_date}</div>
-              <div className="flight-price">{flight.price}</div>
+              <div className="flight-route">
+                <div className="flight-endpoint">
+                  <MapPin size={14} />
+                  <span>{origin}</span>
+                </div>
+                <div className="flight-arrow">
+                  <div className="flight-arrow-line" />
+                  <Plane size={14} />
+                  <div className="flight-arrow-line" />
+                </div>
+                <div className="flight-endpoint">
+                  <MapPin size={14} />
+                  <span>{destination}</span>
+                </div>
+              </div>
+              <div className="flight-details">
+                <div className="flight-detail-item">
+                  <Clock size={12} />
+                  <span>
+                    {flight.departure_time} - {flight.arrival_time}
+                  </span>
+                </div>
+                <div className="flight-detail-item">
+                  <Calendar size={12} />
+                  <span>{flight.departure_date}</span>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
 function MovedMeetingsSection({ meetings }: { meetings: MovedMeeting[] }) {
-  if (meetings.length === 0) return null;
+  if (!meetings || meetings.length === 0) return null;
 
   return (
     <div className="moved-section">
       <div className="section-header">
         <MoveRight size={18} />
         <h3>Rescheduled Meetings</h3>
+        <span className="moved-count">{meetings.length}</span>
       </div>
       <div className="moved-list">
         {meetings.map((meeting) => (
@@ -143,14 +229,20 @@ function MovedMeetingsSection({ meetings }: { meetings: MovedMeeting[] }) {
 
 export function CalendarDashboard({ state }: CalendarDashboardProps) {
   if (!state) {
-    return null;
+    return (
+      <div className="dashboard-empty">
+        <Calendar size={40} />
+        <p>Connecting to your calendar...</p>
+      </div>
+    );
   }
 
   return (
     <div className="calendar-dashboard">
-      <CalendarSection events={state.calendarEvents || []} />
+      <DashboardHeader state={state} />
       <FlightsSection flights={state.bookedFlights || []} />
       <MovedMeetingsSection meetings={state.movedMeetings || []} />
+      <CalendarSection events={state.calendarEvents || []} />
     </div>
   );
 }

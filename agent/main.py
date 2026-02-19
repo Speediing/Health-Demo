@@ -189,6 +189,59 @@ class SessionState:
     def load_data(self):
         self.calendar_events = [evt.copy() for evt in CALENDAR_EVENTS]
 
+    def to_ui_state(self) -> dict:
+        """Serialize state to a dict with camelCase keys matching the frontend SessionState interface."""
+        moved_ids = {m["event_id"] for m in self.moved_meetings}
+        calendar_events = []
+        for evt in self.calendar_events:
+            ce = {
+                "id": evt["id"],
+                "title": evt["title"],
+                "date": evt["date"],
+                "day": evt["day"],
+                "start_time": evt["start_time"],
+                "end_time": evt["end_time"],
+                "attendees": evt["attendees"],
+                "moved": evt["id"] in moved_ids,
+            }
+            # Include original times if the event was moved
+            if evt["id"] in moved_ids:
+                moved_info = next(m for m in self.moved_meetings if m["event_id"] == evt["id"])
+                ce["original_date"] = moved_info.get("original_date", "")
+                ce["original_start_time"] = moved_info.get("original_start_time", "")
+                ce["original_end_time"] = moved_info.get("original_end_time", "")
+            calendar_events.append(ce)
+
+        booked_flights = [
+            {
+                "id": f["id"],
+                "airline": f["airline"],
+                "route": f["route"],
+                "departure_date": f["departure_date"],
+                "departure_time": f["departure_time"],
+                "arrival_time": f["arrival_time"],
+                "price": f["price"],
+            }
+            for f in self.booked_flights
+        ]
+
+        moved_meetings = [
+            {
+                "event_id": m["event_id"],
+                "title": m["title"],
+                "old": m["old"],
+                "new": m["new"],
+                "attendees": m["attendees"],
+            }
+            for m in self.moved_meetings
+        ]
+
+        return {
+            "calendarEvents": calendar_events,
+            "bookedFlights": booked_flights,
+            "movedMeetings": moved_meetings,
+        }
+
 
 RunContext_T = RunContext[SessionState]
 
@@ -196,12 +249,21 @@ RunContext_T = RunContext[SessionState]
 class CalendarAssistant(Agent):
     def __init__(self, state: SessionState) -> None:
         events_text = "\n".join(
-            f"- {evt['title']} on {evt['day']} {evt['date']} from {evt['start_time']} to {evt['end_time']} "
+            f"- [id: {evt['id']}] {evt['title']} on {evt['day']} {evt['date']} from {evt['start_time']} to {evt['end_time']} "
             f"(attendees: {', '.join(evt['attendees'])})"
             for evt in state.calendar_events
         )
         prompt = load_prompt("calendar_assistant.txt").format(calendar_events=events_text)
         super().__init__(instructions=prompt, llm="openai/gpt-4o-mini")
+
+    async def _update_ui(self, context: RunContext_T) -> None:
+        """Push current state to the frontend via participant attributes."""
+        state = context.userdata
+        if state.ctx and state.ctx.room and state.ctx.room.local_participant:
+            ui_state = state.to_ui_state()
+            await state.ctx.room.local_participant.set_attributes(
+                {"state": json.dumps(ui_state)}
+            )
 
     @function_tool
     async def get_calendar_events(
@@ -228,6 +290,7 @@ class CalendarAssistant(Agent):
                 f"from {evt['start_time']} to {evt['end_time']} "
                 f"(attendees: {', '.join(evt['attendees'])})\n"
             )
+        await self._update_ui(context)
         return result
 
     @function_tool
@@ -275,6 +338,7 @@ class CalendarAssistant(Agent):
 
         state.booked_flights.append(flight)
         logger.info(f"Booked flight: {flight['airline']} {flight['route']} on {flight['departure_date']}")
+        await self._update_ui(context)
         return (
             f"Flight booked! {flight['airline']} from {flight['route']} "
             f"on {flight['departure_date']}, departing at {flight['departure_time']} "
@@ -299,6 +363,10 @@ class CalendarAssistant(Agent):
             return "Sorry, I couldn't find that calendar event."
 
         old_info = f"{event['title']} on {event['date']} from {event['start_time']} to {event['end_time']}"
+        original_date = event["date"]
+        original_start = event["start_time"]
+        original_end = event["end_time"]
+
         event["date"] = new_date
         event["start_time"] = new_start_time
         event["end_time"] = new_end_time
@@ -309,10 +377,14 @@ class CalendarAssistant(Agent):
             "old": old_info,
             "new": f"{new_date} from {new_start_time} to {new_end_time}",
             "attendees": event["attendees"],
+            "original_date": original_date,
+            "original_start_time": original_start,
+            "original_end_time": original_end,
         })
 
         attendees_str = ", ".join(event["attendees"])
         logger.info(f"Moved meeting: {event['title']} to {new_date} {new_start_time}-{new_end_time}")
+        await self._update_ui(context)
         return (
             f"Done! Moved '{event['title']}' to {new_date} from {new_start_time} to {new_end_time}. "
             f"Calendar invites have been updated and {attendees_str} have been notified."
@@ -340,6 +412,12 @@ async def entrypoint(ctx: JobContext):
     await session.start(
         agent=agent,
         room=ctx.room,
+    )
+
+    # Push initial calendar state to the frontend
+    ui_state = state.to_ui_state()
+    await ctx.room.local_participant.set_attributes(
+        {"state": json.dumps(ui_state)}
     )
 
     await session.say(

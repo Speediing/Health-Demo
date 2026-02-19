@@ -645,7 +645,90 @@ body {
 .calendar-dashboard {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
+}
+
+.dashboard-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1rem;
+  color: var(--text-muted);
+}
+
+.dashboard-empty svg {
+  opacity: 0.3;
+}
+
+.dashboard-empty p {
+  font-size: 0.875rem;
+}
+
+/* Dashboard Header */
+.dashboard-header {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.dashboard-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-title svg {
+  color: var(--blue);
+}
+
+.dashboard-title h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dashboard-stats {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.3125rem 0.625rem;
+  background: var(--bg-tertiary);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.stat-pill svg {
+  color: var(--text-muted);
+}
+
+.stat-pill.booked {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.stat-pill.booked svg {
+  color: #059669;
+}
+
+.stat-pill.moved {
+  background: #faf5ff;
+  color: #7c3aed;
+}
+
+.stat-pill.moved svg {
+  color: #7c3aed;
 }
 
 /* Calendar Section */
@@ -682,15 +765,51 @@ body {
 .calendar-day {
   border-left: 3px solid var(--blue);
   padding-left: 0.875rem;
+  transition: border-color 0.3s;
+}
+
+.calendar-day.has-changes {
+  border-left-color: var(--accent);
 }
 
 .day-header {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
+}
+
+.day-name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+
+.day-date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.day-change-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+  padding: 0.125rem 0.5rem;
+  background: #faf5ff;
+  color: var(--accent);
+  border-radius: 20px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .day-events {
@@ -700,39 +819,73 @@ body {
 }
 
 .event-card {
-  padding: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
   position: relative;
-  transition: all 0.2s;
+  transition: all 0.3s;
 }
 
 .event-card.moved {
   background: #faf5ff;
   border: 1px solid #e9d5ff;
+  animation: highlight 0.5s ease-out;
 }
 
-.event-time {
+@keyframes highlight {
+  0% { background: #ede9fe; }
+  100% { background: #faf5ff; }
+}
+
+.event-card-left {
+  flex-shrink: 0;
+}
+
+.event-time-block {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.375rem;
-  font-size: 0.75rem;
+  min-width: 56px;
+  font-size: 0.6875rem;
   color: var(--text-muted);
-  margin-bottom: 0.25rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.event-time-start {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.event-time-sep {
+  font-size: 0.625rem;
+  color: var(--text-muted);
+}
+
+.event-time-end {
+  font-size: 0.6875rem;
+}
+
+.event-card-right {
+  flex: 1;
+  min-width: 0;
 }
 
 .event-title {
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--text-primary);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.1875rem;
 }
 
 .event-attendees {
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: var(--text-secondary);
 }
 
@@ -740,13 +893,14 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  margin-top: 0.5rem;
-  padding: 0.1875rem 0.5rem;
+  margin-top: 0.375rem;
+  padding: 0.125rem 0.4375rem;
   background: #7c3aed;
   color: white;
   border-radius: var(--radius-sm);
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 600;
+  animation: fadeIn 0.3s ease-out;
 }
 
 /* Flights Section */
@@ -755,7 +909,7 @@ body {
   border-radius: var(--radius-lg);
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
-  animation: slideIn 0.3s ease-out;
+  animation: slideIn 0.4s ease-out;
 }
 
 @keyframes slideIn {
@@ -795,27 +949,66 @@ body {
   border: 1px solid #dbeafe;
 }
 
+.flight-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
 .flight-airline {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.6875rem;
+  font-weight: 700;
   color: var(--blue);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.375rem;
+  letter-spacing: 0.06em;
+}
+
+.flight-price {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--green);
 }
 
 .flight-route {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-weight: 600;
-  font-size: 0.9375rem;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
-.flight-route svg {
+.flight-endpoint {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+}
+
+.flight-endpoint svg {
   color: var(--blue);
+  flex-shrink: 0;
+}
+
+.flight-arrow {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  color: var(--blue);
+  opacity: 0.5;
+}
+
+.flight-arrow-line {
+  flex: 1;
+  height: 1px;
+  background: var(--blue);
+  opacity: 0.4;
+}
+
+.flight-arrow svg {
+  flex-shrink: 0;
 }
 
 .flight-details {
@@ -825,24 +1018,16 @@ body {
   flex-wrap: wrap;
 }
 
-.flight-time {
+.flight-detail-item {
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
 }
 
-.flight-date {
-  font-size: 0.8125rem;
-  color: var(--text-secondary);
-}
-
-.flight-price {
-  font-weight: 700;
-  font-size: 0.875rem;
-  color: var(--green);
-  margin-left: auto;
+.flight-detail-item svg {
+  color: var(--text-muted);
 }
 
 /* Moved Meetings Section */
@@ -851,7 +1036,20 @@ body {
   border-radius: var(--radius-lg);
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
-  animation: slideIn 0.3s ease-out;
+  animation: slideIn 0.4s ease-out;
+}
+
+.moved-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: var(--accent);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.6875rem;
+  font-weight: 700;
 }
 
 .moved-list {
@@ -865,6 +1063,7 @@ body {
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
   border-left: 3px solid var(--accent);
+  animation: fadeIn 0.3s ease-out;
 }
 
 .moved-title {
