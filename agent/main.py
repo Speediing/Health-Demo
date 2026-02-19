@@ -62,8 +62,8 @@ CALENDAR_EVENTS = [
         "title": "1:1 with Manager",
         "date": "2026-02-23",
         "day": "Monday",
-        "start_time": "2:00 PM",
-        "end_time": "2:30 PM",
+        "start_time": "11:00 AM",
+        "end_time": "11:30 AM",
         "attendees": ["Alex Chen"],
     },
     {
