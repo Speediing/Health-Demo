@@ -428,7 +428,7 @@ async def entrypoint(ctx: JobContext):
     session = AgentSession[SessionState](
         userdata=state,
         stt="deepgram/nova-3",
-        tts="elevenlabs/eleven_turbo_v2_5:Xb7hH8MSUJpSbSDYk0k2",
+        tts="elevenlabs/eleven_turbo_v2_5:cgSgspJ2msm6clMCkdW9",
         turn_detection=MultilingualModel(),
         vad=silero.VAD.load(),
     )
